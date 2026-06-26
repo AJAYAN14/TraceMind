@@ -29,3 +29,11 @@ dependencyResolutionManagement {
 
 rootProject.name = "TraceMind"
 include(":app")
+include(":core:coreUi")
+include(":core:coreDomain")
+include(":core:coreData")
+include(":feature:featureHome")
+include(":feature:featureInsights")
+include(":feature:featureFolder")
+include(":feature:featureEditor")
+include(":feature:featureProfile")

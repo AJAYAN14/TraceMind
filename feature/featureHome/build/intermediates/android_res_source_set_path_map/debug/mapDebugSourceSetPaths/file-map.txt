@@ -1,0 +1,9 @@
+com.jian.tracemind.feature.home.featureHome-pngs-0 E:\Android\TraceMind\feature\featureHome\build\generated\res\pngs\debug
+com.jian.tracemind.feature.home.featureHome-updated_navigation_xml-1 E:\Android\TraceMind\feature\featureHome\build\generated\updated_navigation_xml\debug
+com.jian.tracemind.feature.home.featureHome-mergeDebugResources-2 E:\Android\TraceMind\feature\featureHome\build\intermediates\incremental\debug\mergeDebugResources\merged.dir
+com.jian.tracemind.feature.home.featureHome-mergeDebugResources-3 E:\Android\TraceMind\feature\featureHome\build\intermediates\incremental\debug\mergeDebugResources\stripped.dir
+com.jian.tracemind.feature.home.featureHome-debug-4 E:\Android\TraceMind\feature\featureHome\build\intermediates\merged_res\debug\mergeDebugResources
+com.jian.tracemind.feature.home.featureHome-debug-5 E:\Android\TraceMind\feature\featureHome\build\intermediates\packaged_res\debug\packageDebugResources
+com.jian.tracemind.feature.home.featureHome-debug-6 E:\Android\TraceMind\feature\featureHome\src\debug\res
+com.jian.tracemind.feature.home.featureHome-main-7 E:\Android\TraceMind\feature\featureHome\src\main\res
+gradleHome-0 D:\Android\.gradle

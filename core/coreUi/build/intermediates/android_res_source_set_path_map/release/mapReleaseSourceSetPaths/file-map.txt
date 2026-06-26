@@ -1,0 +1,9 @@
+com.jian.tracemind.core.ui.coreUi-pngs-0 E:\Android\TraceMind\core\coreUi\build\generated\res\pngs\release
+com.jian.tracemind.core.ui.coreUi-updated_navigation_xml-1 E:\Android\TraceMind\core\coreUi\build\generated\updated_navigation_xml\release
+com.jian.tracemind.core.ui.coreUi-mergeReleaseResources-2 E:\Android\TraceMind\core\coreUi\build\intermediates\incremental\release\mergeReleaseResources\merged.dir
+com.jian.tracemind.core.ui.coreUi-mergeReleaseResources-3 E:\Android\TraceMind\core\coreUi\build\intermediates\incremental\release\mergeReleaseResources\stripped.dir
+com.jian.tracemind.core.ui.coreUi-release-4 E:\Android\TraceMind\core\coreUi\build\intermediates\merged_res\release\mergeReleaseResources
+com.jian.tracemind.core.ui.coreUi-release-5 E:\Android\TraceMind\core\coreUi\build\intermediates\packaged_res\release\packageReleaseResources
+com.jian.tracemind.core.ui.coreUi-main-6 E:\Android\TraceMind\core\coreUi\src\main\res
+com.jian.tracemind.core.ui.coreUi-release-7 E:\Android\TraceMind\core\coreUi\src\release\res
+gradleHome-0 D:\Android\.gradle
