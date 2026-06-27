@@ -21,10 +21,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.jian.tracemind.feature.insights.ui.InsightsMockData
+import com.jian.tracemind.feature.insights.ui.MoodData
 
 @Composable
-fun MoodTrendsCard(modifier: Modifier = Modifier) {
+fun MoodTrendsCard(moodDataList: List<MoodData>, modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -32,7 +32,16 @@ fun MoodTrendsCard(modifier: Modifier = Modifier) {
             .background(Color.White)
             .padding(16.dp)
     ) {
-        val maxVal = InsightsMockData.moodDataList.maxOfOrNull { it.value } ?: 1
+        if (moodDataList.isEmpty()) {
+            Text(
+                text = "暂无心情数据",
+                color = Color.Gray,
+                modifier = Modifier.align(Alignment.CenterHorizontally).padding(32.dp)
+            )
+            return@Column
+        }
+
+        val maxVal = moodDataList.maxOfOrNull { it.value } ?: 1
         val chartHeight = 150.dp
         
         Row(
@@ -43,7 +52,7 @@ fun MoodTrendsCard(modifier: Modifier = Modifier) {
             horizontalArrangement = Arrangement.SpaceAround,
             verticalAlignment = Alignment.Bottom
         ) {
-            InsightsMockData.moodDataList.forEach { moodItem ->
+            moodDataList.forEach { moodItem ->
                 val barHeightFrac = moodItem.value.toFloat() / maxVal
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -71,7 +80,7 @@ fun MoodTrendsCard(modifier: Modifier = Modifier) {
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            InsightsMockData.moodDataList.forEach { moodItem ->
+            moodDataList.forEach { moodItem ->
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(horizontal = 6.dp)

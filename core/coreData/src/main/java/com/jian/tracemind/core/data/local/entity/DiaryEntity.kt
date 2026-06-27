@@ -16,6 +16,8 @@ data class DiaryEntity(
     val mood: String?,
     val weather: String?,
     val tags: String, // stored as comma-separated or JSON string since Room doesn't support List out of the box without TypeConverter
+    val images: String = "", // comma-separated URIs
+    val audioPath: String? = null,
     val coverImage: String? = null
 )
 
@@ -30,6 +32,8 @@ fun DiaryEntity.toDomainModel(): Diary {
         mood = mood,
         weather = weather,
         tags = if (tags.isBlank()) emptyList() else tags.split(","),
+        images = if (images.isBlank()) emptyList() else images.split(","),
+        audioPath = audioPath,
         coverImage = coverImage
     )
 }
@@ -45,6 +49,8 @@ fun Diary.toEntity(): DiaryEntity {
         mood = mood,
         weather = weather,
         tags = tags.joinToString(","),
+        images = images.joinToString(","),
+        audioPath = audioPath,
         coverImage = coverImage
     )
 }

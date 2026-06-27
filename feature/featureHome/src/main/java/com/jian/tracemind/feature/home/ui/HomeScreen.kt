@@ -26,7 +26,13 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
+import androidx.compose.material3.AlertDialog
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -47,10 +53,114 @@ fun HomeScreen(
     innerPadding: PaddingValues,
     onAddClick: () -> Unit = {},
     onDiaryClick: (String) -> Unit = {},
+    onFolderClick: (String) -> Unit = {},
     viewModel: HomeViewModel = hiltViewModel(),
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    var showCreateFolderDialog by remember { mutableStateOf(false) }
+    var folderName by remember { mutableStateOf("") }
+    
+    var showRenameDialog by remember { mutableStateOf(false) }
+    var renameFolderId by remember { mutableStateOf("") }
+    var renameFolderName by remember { mutableStateOf("") }
+    
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    var deleteFolderId by remember { mutableStateOf("") }
+    var deleteFolderName by remember { mutableStateOf("") }
+
+    if (showCreateFolderDialog) {
+        AlertDialog(
+            onDismissRequest = { showCreateFolderDialog = false },
+            title = { Text("新建文件夹", fontSize = 18.sp, fontWeight = FontWeight.Bold) },
+            text = {
+                TextField(
+                    value = folderName,
+                    onValueChange = { folderName = it },
+                    placeholder = { Text("文件夹名称") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    if (folderName.isNotBlank()) {
+                        viewModel.createFolder(folderName)
+                        showCreateFolderDialog = false
+                        folderName = ""
+                    }
+                }) {
+                    Text("创建", color = Color(0xFF1A1C1E))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { 
+                    showCreateFolderDialog = false 
+                    folderName = ""
+                }) {
+                    Text("取消", color = Color(0xFF9CA3AF))
+                }
+            },
+            containerColor = Color.White
+        )
+    }
+
+    if (showRenameDialog) {
+        AlertDialog(
+            onDismissRequest = { showRenameDialog = false },
+            title = { Text("重命名文件夹", fontSize = 18.sp, fontWeight = FontWeight.Bold) },
+            text = {
+                TextField(
+                    value = renameFolderName,
+                    onValueChange = { renameFolderName = it },
+                    placeholder = { Text("新文件夹名称") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    if (renameFolderName.isNotBlank()) {
+                        viewModel.renameFolder(renameFolderId, renameFolderName)
+                        showRenameDialog = false
+                    }
+                }) {
+                    Text("保存", color = Color(0xFF1A1C1E))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showRenameDialog = false }) {
+                    Text("取消", color = Color(0xFF9CA3AF))
+                }
+            },
+            containerColor = Color.White
+        )
+    }
+
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = { Text("删除文件夹", fontSize = 18.sp, fontWeight = FontWeight.Bold) },
+            text = {
+                Text("确定要删除“$deleteFolderName”吗？\n该文件夹下的日记不会被删除，它们将被移至“全部日记”。")
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.deleteFolder(deleteFolderId)
+                    showDeleteDialog = false
+                }) {
+                    Text("删除", color = Color.Red)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text("取消", color = Color(0xFF9CA3AF))
+                }
+            },
+            containerColor = Color.White
+        )
+    }
+
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -92,19 +202,45 @@ fun HomeScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             SectionLabel("我的文件夹", modifier = Modifier.padding(bottom = 0.dp))
-                            Text(
-                                text = "查看全部",
-                                color = Color(0xFF5552E4),
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.SemiBold
-                            )
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                IconButton(
+                                    onClick = { showCreateFolderDialog = true },
+                                    modifier = Modifier.size(24.dp).padding(end = 4.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Add,
+                                        contentDescription = "Create Folder",
+                                        tint = Color(0xFF5552E4)
+                                    )
+                                }
+                                Text(
+                                    text = "查看全部",
+                                    color = Color(0xFF5552E4),
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    modifier = Modifier.clickable { onFolderClick("") }
+                                )
+                            }
                         }
                         Spacer(modifier = Modifier.height(10.dp))
                         LazyRow(
                             horizontalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
-                            items(uiState.folders) { folder ->
-                                FolderCard(folder = folder) // Might need mapping if mock format differs
+                            items(uiState.folders) { model ->
+                                FolderCard(
+                                    model = model,
+                                    onClick = { onFolderClick(model.folder.id) },
+                                    onRenameClick = {
+                                        renameFolderId = model.folder.id
+                                        renameFolderName = model.folder.name
+                                        showRenameDialog = true
+                                    },
+                                    onDeleteClick = {
+                                        deleteFolderId = model.folder.id
+                                        deleteFolderName = model.folder.name
+                                        showDeleteDialog = true
+                                    }
+                                )
                             }
                         }
                     }

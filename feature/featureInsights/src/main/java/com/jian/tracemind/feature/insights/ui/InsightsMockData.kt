@@ -1,8 +1,5 @@
 package com.jian.tracemind.feature.insights.ui
 
-data class MoodData(val emoji: String, val mood: String, val value: Int, val color: Long)
-data class TagData(val label: String, val count: Int)
-
 object InsightsMockData {
     // 18 weeks × 7 days heatmap (0–4 intensity)
     val heatmapData: List<List<Int>> = listOf(

@@ -134,8 +134,9 @@ fun FolderScreen(
                         shape = RoundedCornerShape(24.dp)
                     )
                 } else {
+                    val title = uiState.currentFolder?.name ?: "全部日记"
                     Text(
-                        text = "文件夹", // TODO: Fetch real folder name
+                        text = title,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF1A1C1E),

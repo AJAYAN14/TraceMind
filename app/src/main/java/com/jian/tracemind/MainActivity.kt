@@ -146,11 +146,25 @@ class MainActivity : ComponentActivity() {
                                     innerPadding = innerPadding,
                                     onAddClick = { navController.navigate(AppRoute.Editor.createRoute()) },
                                     onDiaryClick = { id -> navController.navigate(AppRoute.Editor.createRoute(diaryId = id)) },
+                                    onFolderClick = { id -> navController.navigate(AppRoute.Folder.createRoute(folderId = id)) },
                                     modifier = Modifier.fillMaxSize()
                                 )
                             }
-                            composable(AppRoute.Folder.route) {
-                                FolderScreen(innerPadding = innerPadding, modifier = Modifier.fillMaxSize())
+                            composable(
+                                route = AppRoute.Folder.route,
+                                arguments = listOf(
+                                    navArgument("folderId") {
+                                        type = NavType.StringType
+                                        nullable = true
+                                    }
+                                )
+                            ) {
+                                FolderScreen(
+                                    innerPadding = innerPadding, 
+                                    onNavigateBack = { navController.popBackStack() },
+                                    onNavigateToEditor = { fId -> navController.navigate(AppRoute.Editor.createRoute(folderId = fId)) },
+                                    modifier = Modifier.fillMaxSize()
+                                )
                             }
                             composable(AppRoute.Insights.route) {
                                 InsightsScreen(innerPadding = innerPadding, modifier = Modifier.fillMaxSize())

@@ -9,7 +9,12 @@ sealed class AppRoute(val route: String) {
             return "editor?diaryId=$dId&folderId=$fId"
         }
     }
-    object Folder : AppRoute("folder")
+    object Folder : AppRoute("folder?folderId={folderId}") {
+        fun createRoute(folderId: String? = null): String {
+            val fId = folderId ?: ""
+            return "folder?folderId=$fId"
+        }
+    }
     object Insights : AppRoute("insights")
     object Profile : AppRoute("profile")
 }

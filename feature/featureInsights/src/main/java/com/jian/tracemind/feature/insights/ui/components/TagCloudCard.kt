@@ -21,11 +21,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.jian.tracemind.feature.insights.ui.InsightsMockData
+import com.jian.tracemind.feature.insights.ui.TagData
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun TagCloudCard(modifier: Modifier = Modifier) {
+fun TagCloudCard(tagCloudData: List<TagData>, modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -38,7 +38,18 @@ fun TagCloudCard(modifier: Modifier = Modifier) {
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            InsightsMockData.tagCloudData.forEach { tag ->
+            if (tagCloudData.isEmpty()) {
+                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    Text(
+                        text = "暂无标签数据",
+                        color = Color.Gray,
+                        modifier = Modifier.padding(16.dp)
+                    )
+                }
+                return@FlowRow
+            }
+
+            tagCloudData.forEach { tag ->
                 val fontSize = when {
                     tag.count > 30 -> 14.sp
                     tag.count > 20 -> 13.sp

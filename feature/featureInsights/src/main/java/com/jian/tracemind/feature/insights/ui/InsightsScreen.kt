@@ -45,7 +45,7 @@ fun InsightsScreen(
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
             Spacer(modifier = Modifier.height(innerPadding.calculateTopPadding()))
-            InsightsTopBar()
+            InsightsTopBar(totalDiaries = uiState.totalDiaries, totalWords = uiState.totalWords)
             
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
@@ -66,15 +66,15 @@ fun InsightsScreen(
                 
                 item {
                     Column {
-                        SectionLabel("情绪趋势 · 近30天")
-                        MoodTrendsCard()
+                        SectionLabel("情绪趋势 · 历史")
+                        MoodTrendsCard(moodDataList = uiState.moodDataList)
                     }
                 }
                 
                 item {
                     Column {
                         SectionLabel("标签云")
-                        TagCloudCard()
+                        TagCloudCard(tagCloudData = uiState.tagCloudData)
                     }
                 }
             }
@@ -83,7 +83,7 @@ fun InsightsScreen(
 }
 
 @Composable
-fun InsightsTopBar() {
+fun InsightsTopBar(totalDiaries: Int, totalWords: Int) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -91,12 +91,20 @@ fun InsightsTopBar() {
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(
-            text = "我的洞察",
-            color = Color(0xFF1A1C1E),
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold
-        )
+        Column {
+            Text(
+                text = "我的洞察",
+                color = Color(0xFF1A1C1E),
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(
+                text = "共 $totalDiaries 篇，总字数 $totalWords",
+                color = Color.Gray,
+                fontSize = 12.sp
+            )
+        }
         
         Box(
             modifier = Modifier
@@ -105,8 +113,9 @@ fun InsightsTopBar() {
                 .border(1.dp, Color(0xFFE5E7EB), RoundedCornerShape(10.dp))
                 .padding(horizontal = 12.dp, vertical = 6.dp)
         ) {
+            val date = java.text.SimpleDateFormat("yyyy年M月", java.util.Locale.getDefault()).format(java.util.Date())
             Text(
-                text = "2026年6月",
+                text = date,
                 color = Color(0xFF6B7280),
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Medium

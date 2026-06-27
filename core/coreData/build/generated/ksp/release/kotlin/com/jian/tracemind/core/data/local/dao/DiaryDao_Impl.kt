@@ -34,7 +34,7 @@ public class DiaryDao_Impl(
     this.__db = __db
     this.__insertAdapterOfDiaryEntity = object : EntityInsertAdapter<DiaryEntity>() {
       protected override fun createQuery(): String =
-          "INSERT OR REPLACE INTO `diaries` (`id`,`folderId`,`title`,`content`,`createdAt`,`updatedAt`,`mood`,`weather`,`tags`,`coverImage`) VALUES (?,?,?,?,?,?,?,?,?,?)"
+          "INSERT OR REPLACE INTO `diaries` (`id`,`folderId`,`title`,`content`,`createdAt`,`updatedAt`,`mood`,`weather`,`tags`,`images`,`audioPath`,`coverImage`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)"
 
       protected override fun bind(statement: SQLiteStatement, entity: DiaryEntity) {
         statement.bindText(1, entity.id)
@@ -61,17 +61,24 @@ public class DiaryDao_Impl(
           statement.bindText(8, _tmpWeather)
         }
         statement.bindText(9, entity.tags)
+        statement.bindText(10, entity.images)
+        val _tmpAudioPath: String? = entity.audioPath
+        if (_tmpAudioPath == null) {
+          statement.bindNull(11)
+        } else {
+          statement.bindText(11, _tmpAudioPath)
+        }
         val _tmpCoverImage: String? = entity.coverImage
         if (_tmpCoverImage == null) {
-          statement.bindNull(10)
+          statement.bindNull(12)
         } else {
-          statement.bindText(10, _tmpCoverImage)
+          statement.bindText(12, _tmpCoverImage)
         }
       }
     }
     this.__updateAdapterOfDiaryEntity = object : EntityDeleteOrUpdateAdapter<DiaryEntity>() {
       protected override fun createQuery(): String =
-          "UPDATE OR ABORT `diaries` SET `id` = ?,`folderId` = ?,`title` = ?,`content` = ?,`createdAt` = ?,`updatedAt` = ?,`mood` = ?,`weather` = ?,`tags` = ?,`coverImage` = ? WHERE `id` = ?"
+          "UPDATE OR ABORT `diaries` SET `id` = ?,`folderId` = ?,`title` = ?,`content` = ?,`createdAt` = ?,`updatedAt` = ?,`mood` = ?,`weather` = ?,`tags` = ?,`images` = ?,`audioPath` = ?,`coverImage` = ? WHERE `id` = ?"
 
       protected override fun bind(statement: SQLiteStatement, entity: DiaryEntity) {
         statement.bindText(1, entity.id)
@@ -98,13 +105,20 @@ public class DiaryDao_Impl(
           statement.bindText(8, _tmpWeather)
         }
         statement.bindText(9, entity.tags)
+        statement.bindText(10, entity.images)
+        val _tmpAudioPath: String? = entity.audioPath
+        if (_tmpAudioPath == null) {
+          statement.bindNull(11)
+        } else {
+          statement.bindText(11, _tmpAudioPath)
+        }
         val _tmpCoverImage: String? = entity.coverImage
         if (_tmpCoverImage == null) {
-          statement.bindNull(10)
+          statement.bindNull(12)
         } else {
-          statement.bindText(10, _tmpCoverImage)
+          statement.bindText(12, _tmpCoverImage)
         }
-        statement.bindText(11, entity.id)
+        statement.bindText(13, entity.id)
       }
     }
   }
@@ -133,6 +147,8 @@ public class DiaryDao_Impl(
         val _columnIndexOfMood: Int = getColumnIndexOrThrow(_stmt, "mood")
         val _columnIndexOfWeather: Int = getColumnIndexOrThrow(_stmt, "weather")
         val _columnIndexOfTags: Int = getColumnIndexOrThrow(_stmt, "tags")
+        val _columnIndexOfImages: Int = getColumnIndexOrThrow(_stmt, "images")
+        val _columnIndexOfAudioPath: Int = getColumnIndexOrThrow(_stmt, "audioPath")
         val _columnIndexOfCoverImage: Int = getColumnIndexOrThrow(_stmt, "coverImage")
         val _result: MutableList<DiaryEntity> = mutableListOf()
         while (_stmt.step()) {
@@ -167,6 +183,14 @@ public class DiaryDao_Impl(
           }
           val _tmpTags: String
           _tmpTags = _stmt.getText(_columnIndexOfTags)
+          val _tmpImages: String
+          _tmpImages = _stmt.getText(_columnIndexOfImages)
+          val _tmpAudioPath: String?
+          if (_stmt.isNull(_columnIndexOfAudioPath)) {
+            _tmpAudioPath = null
+          } else {
+            _tmpAudioPath = _stmt.getText(_columnIndexOfAudioPath)
+          }
           val _tmpCoverImage: String?
           if (_stmt.isNull(_columnIndexOfCoverImage)) {
             _tmpCoverImage = null
@@ -174,7 +198,7 @@ public class DiaryDao_Impl(
             _tmpCoverImage = _stmt.getText(_columnIndexOfCoverImage)
           }
           _item =
-              DiaryEntity(_tmpId,_tmpFolderId,_tmpTitle,_tmpContent,_tmpCreatedAt,_tmpUpdatedAt,_tmpMood,_tmpWeather,_tmpTags,_tmpCoverImage)
+              DiaryEntity(_tmpId,_tmpFolderId,_tmpTitle,_tmpContent,_tmpCreatedAt,_tmpUpdatedAt,_tmpMood,_tmpWeather,_tmpTags,_tmpImages,_tmpAudioPath,_tmpCoverImage)
           _result.add(_item)
         }
         _result
@@ -200,6 +224,8 @@ public class DiaryDao_Impl(
         val _columnIndexOfMood: Int = getColumnIndexOrThrow(_stmt, "mood")
         val _columnIndexOfWeather: Int = getColumnIndexOrThrow(_stmt, "weather")
         val _columnIndexOfTags: Int = getColumnIndexOrThrow(_stmt, "tags")
+        val _columnIndexOfImages: Int = getColumnIndexOrThrow(_stmt, "images")
+        val _columnIndexOfAudioPath: Int = getColumnIndexOrThrow(_stmt, "audioPath")
         val _columnIndexOfCoverImage: Int = getColumnIndexOrThrow(_stmt, "coverImage")
         val _result: MutableList<DiaryEntity> = mutableListOf()
         while (_stmt.step()) {
@@ -234,6 +260,14 @@ public class DiaryDao_Impl(
           }
           val _tmpTags: String
           _tmpTags = _stmt.getText(_columnIndexOfTags)
+          val _tmpImages: String
+          _tmpImages = _stmt.getText(_columnIndexOfImages)
+          val _tmpAudioPath: String?
+          if (_stmt.isNull(_columnIndexOfAudioPath)) {
+            _tmpAudioPath = null
+          } else {
+            _tmpAudioPath = _stmt.getText(_columnIndexOfAudioPath)
+          }
           val _tmpCoverImage: String?
           if (_stmt.isNull(_columnIndexOfCoverImage)) {
             _tmpCoverImage = null
@@ -241,7 +275,7 @@ public class DiaryDao_Impl(
             _tmpCoverImage = _stmt.getText(_columnIndexOfCoverImage)
           }
           _item =
-              DiaryEntity(_tmpId,_tmpFolderId,_tmpTitle,_tmpContent,_tmpCreatedAt,_tmpUpdatedAt,_tmpMood,_tmpWeather,_tmpTags,_tmpCoverImage)
+              DiaryEntity(_tmpId,_tmpFolderId,_tmpTitle,_tmpContent,_tmpCreatedAt,_tmpUpdatedAt,_tmpMood,_tmpWeather,_tmpTags,_tmpImages,_tmpAudioPath,_tmpCoverImage)
           _result.add(_item)
         }
         _result
@@ -265,6 +299,8 @@ public class DiaryDao_Impl(
         val _columnIndexOfMood: Int = getColumnIndexOrThrow(_stmt, "mood")
         val _columnIndexOfWeather: Int = getColumnIndexOrThrow(_stmt, "weather")
         val _columnIndexOfTags: Int = getColumnIndexOrThrow(_stmt, "tags")
+        val _columnIndexOfImages: Int = getColumnIndexOrThrow(_stmt, "images")
+        val _columnIndexOfAudioPath: Int = getColumnIndexOrThrow(_stmt, "audioPath")
         val _columnIndexOfCoverImage: Int = getColumnIndexOrThrow(_stmt, "coverImage")
         val _result: MutableList<DiaryEntity> = mutableListOf()
         while (_stmt.step()) {
@@ -299,6 +335,14 @@ public class DiaryDao_Impl(
           }
           val _tmpTags: String
           _tmpTags = _stmt.getText(_columnIndexOfTags)
+          val _tmpImages: String
+          _tmpImages = _stmt.getText(_columnIndexOfImages)
+          val _tmpAudioPath: String?
+          if (_stmt.isNull(_columnIndexOfAudioPath)) {
+            _tmpAudioPath = null
+          } else {
+            _tmpAudioPath = _stmt.getText(_columnIndexOfAudioPath)
+          }
           val _tmpCoverImage: String?
           if (_stmt.isNull(_columnIndexOfCoverImage)) {
             _tmpCoverImage = null
@@ -306,7 +350,7 @@ public class DiaryDao_Impl(
             _tmpCoverImage = _stmt.getText(_columnIndexOfCoverImage)
           }
           _item =
-              DiaryEntity(_tmpId,_tmpFolderId,_tmpTitle,_tmpContent,_tmpCreatedAt,_tmpUpdatedAt,_tmpMood,_tmpWeather,_tmpTags,_tmpCoverImage)
+              DiaryEntity(_tmpId,_tmpFolderId,_tmpTitle,_tmpContent,_tmpCreatedAt,_tmpUpdatedAt,_tmpMood,_tmpWeather,_tmpTags,_tmpImages,_tmpAudioPath,_tmpCoverImage)
           _result.add(_item)
         }
         _result
@@ -335,6 +379,8 @@ public class DiaryDao_Impl(
         val _columnIndexOfMood: Int = getColumnIndexOrThrow(_stmt, "mood")
         val _columnIndexOfWeather: Int = getColumnIndexOrThrow(_stmt, "weather")
         val _columnIndexOfTags: Int = getColumnIndexOrThrow(_stmt, "tags")
+        val _columnIndexOfImages: Int = getColumnIndexOrThrow(_stmt, "images")
+        val _columnIndexOfAudioPath: Int = getColumnIndexOrThrow(_stmt, "audioPath")
         val _columnIndexOfCoverImage: Int = getColumnIndexOrThrow(_stmt, "coverImage")
         val _result: MutableList<DiaryEntity> = mutableListOf()
         while (_stmt.step()) {
@@ -369,6 +415,14 @@ public class DiaryDao_Impl(
           }
           val _tmpTags: String
           _tmpTags = _stmt.getText(_columnIndexOfTags)
+          val _tmpImages: String
+          _tmpImages = _stmt.getText(_columnIndexOfImages)
+          val _tmpAudioPath: String?
+          if (_stmt.isNull(_columnIndexOfAudioPath)) {
+            _tmpAudioPath = null
+          } else {
+            _tmpAudioPath = _stmt.getText(_columnIndexOfAudioPath)
+          }
           val _tmpCoverImage: String?
           if (_stmt.isNull(_columnIndexOfCoverImage)) {
             _tmpCoverImage = null
@@ -376,7 +430,7 @@ public class DiaryDao_Impl(
             _tmpCoverImage = _stmt.getText(_columnIndexOfCoverImage)
           }
           _item =
-              DiaryEntity(_tmpId,_tmpFolderId,_tmpTitle,_tmpContent,_tmpCreatedAt,_tmpUpdatedAt,_tmpMood,_tmpWeather,_tmpTags,_tmpCoverImage)
+              DiaryEntity(_tmpId,_tmpFolderId,_tmpTitle,_tmpContent,_tmpCreatedAt,_tmpUpdatedAt,_tmpMood,_tmpWeather,_tmpTags,_tmpImages,_tmpAudioPath,_tmpCoverImage)
           _result.add(_item)
         }
         _result
@@ -421,6 +475,8 @@ public class DiaryDao_Impl(
         val _columnIndexOfMood: Int = getColumnIndexOrThrow(_stmt, "mood")
         val _columnIndexOfWeather: Int = getColumnIndexOrThrow(_stmt, "weather")
         val _columnIndexOfTags: Int = getColumnIndexOrThrow(_stmt, "tags")
+        val _columnIndexOfImages: Int = getColumnIndexOrThrow(_stmt, "images")
+        val _columnIndexOfAudioPath: Int = getColumnIndexOrThrow(_stmt, "audioPath")
         val _columnIndexOfCoverImage: Int = getColumnIndexOrThrow(_stmt, "coverImage")
         val _result: MutableList<DiaryEntity> = mutableListOf()
         while (_stmt.step()) {
@@ -455,6 +511,14 @@ public class DiaryDao_Impl(
           }
           val _tmpTags: String
           _tmpTags = _stmt.getText(_columnIndexOfTags)
+          val _tmpImages: String
+          _tmpImages = _stmt.getText(_columnIndexOfImages)
+          val _tmpAudioPath: String?
+          if (_stmt.isNull(_columnIndexOfAudioPath)) {
+            _tmpAudioPath = null
+          } else {
+            _tmpAudioPath = _stmt.getText(_columnIndexOfAudioPath)
+          }
           val _tmpCoverImage: String?
           if (_stmt.isNull(_columnIndexOfCoverImage)) {
             _tmpCoverImage = null
@@ -462,7 +526,7 @@ public class DiaryDao_Impl(
             _tmpCoverImage = _stmt.getText(_columnIndexOfCoverImage)
           }
           _item =
-              DiaryEntity(_tmpId,_tmpFolderId,_tmpTitle,_tmpContent,_tmpCreatedAt,_tmpUpdatedAt,_tmpMood,_tmpWeather,_tmpTags,_tmpCoverImage)
+              DiaryEntity(_tmpId,_tmpFolderId,_tmpTitle,_tmpContent,_tmpCreatedAt,_tmpUpdatedAt,_tmpMood,_tmpWeather,_tmpTags,_tmpImages,_tmpAudioPath,_tmpCoverImage)
           _result.add(_item)
         }
         _result
@@ -488,6 +552,8 @@ public class DiaryDao_Impl(
         val _columnIndexOfMood: Int = getColumnIndexOrThrow(_stmt, "mood")
         val _columnIndexOfWeather: Int = getColumnIndexOrThrow(_stmt, "weather")
         val _columnIndexOfTags: Int = getColumnIndexOrThrow(_stmt, "tags")
+        val _columnIndexOfImages: Int = getColumnIndexOrThrow(_stmt, "images")
+        val _columnIndexOfAudioPath: Int = getColumnIndexOrThrow(_stmt, "audioPath")
         val _columnIndexOfCoverImage: Int = getColumnIndexOrThrow(_stmt, "coverImage")
         val _result: DiaryEntity?
         if (_stmt.step()) {
@@ -521,6 +587,14 @@ public class DiaryDao_Impl(
           }
           val _tmpTags: String
           _tmpTags = _stmt.getText(_columnIndexOfTags)
+          val _tmpImages: String
+          _tmpImages = _stmt.getText(_columnIndexOfImages)
+          val _tmpAudioPath: String?
+          if (_stmt.isNull(_columnIndexOfAudioPath)) {
+            _tmpAudioPath = null
+          } else {
+            _tmpAudioPath = _stmt.getText(_columnIndexOfAudioPath)
+          }
           val _tmpCoverImage: String?
           if (_stmt.isNull(_columnIndexOfCoverImage)) {
             _tmpCoverImage = null
@@ -528,7 +602,7 @@ public class DiaryDao_Impl(
             _tmpCoverImage = _stmt.getText(_columnIndexOfCoverImage)
           }
           _result =
-              DiaryEntity(_tmpId,_tmpFolderId,_tmpTitle,_tmpContent,_tmpCreatedAt,_tmpUpdatedAt,_tmpMood,_tmpWeather,_tmpTags,_tmpCoverImage)
+              DiaryEntity(_tmpId,_tmpFolderId,_tmpTitle,_tmpContent,_tmpCreatedAt,_tmpUpdatedAt,_tmpMood,_tmpWeather,_tmpTags,_tmpImages,_tmpAudioPath,_tmpCoverImage)
         } else {
           _result = null
         }

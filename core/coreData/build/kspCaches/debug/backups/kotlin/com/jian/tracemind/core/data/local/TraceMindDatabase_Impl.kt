@@ -46,13 +46,13 @@ public class TraceMindDatabase_Impl : TraceMindDatabase() {
     get() = _diaryDao.value
 
   protected override fun createOpenDelegate(): RoomOpenDelegate {
-    val _openDelegate: RoomOpenDelegate = object : RoomOpenDelegate(1,
-        "2d59f4e021060c8f3126f5cf4cc9d516", "deda4d56f78d56fb2f16d68bedaeb9f8") {
+    val _openDelegate: RoomOpenDelegate = object : RoomOpenDelegate(2,
+        "41c579bd55b6575642557bde2e1a7931", "06929ea00b7ecfa567057df5c2a38e46") {
       public override fun createAllTables(connection: SQLiteConnection) {
         connection.execSQL("CREATE TABLE IF NOT EXISTS `folders` (`id` TEXT NOT NULL, `parentId` TEXT, `name` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `updatedAt` INTEGER NOT NULL, PRIMARY KEY(`id`))")
-        connection.execSQL("CREATE TABLE IF NOT EXISTS `diaries` (`id` TEXT NOT NULL, `folderId` TEXT, `title` TEXT NOT NULL, `content` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `updatedAt` INTEGER NOT NULL, `mood` TEXT, `weather` TEXT, `tags` TEXT NOT NULL, `coverImage` TEXT, PRIMARY KEY(`id`))")
+        connection.execSQL("CREATE TABLE IF NOT EXISTS `diaries` (`id` TEXT NOT NULL, `folderId` TEXT, `title` TEXT NOT NULL, `content` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `updatedAt` INTEGER NOT NULL, `mood` TEXT, `weather` TEXT, `tags` TEXT NOT NULL, `images` TEXT NOT NULL, `audioPath` TEXT, `coverImage` TEXT, PRIMARY KEY(`id`))")
         connection.execSQL("CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)")
-        connection.execSQL("INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '2d59f4e021060c8f3126f5cf4cc9d516')")
+        connection.execSQL("INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '41c579bd55b6575642557bde2e1a7931')")
       }
 
       public override fun dropAllTables(connection: SQLiteConnection) {
@@ -119,6 +119,10 @@ public class TraceMindDatabase_Impl : TraceMindDatabase() {
         _columnsDiaries.put("weather", TableInfo.Column("weather", "TEXT", false, 0, null,
             TableInfo.CREATED_FROM_ENTITY))
         _columnsDiaries.put("tags", TableInfo.Column("tags", "TEXT", true, 0, null,
+            TableInfo.CREATED_FROM_ENTITY))
+        _columnsDiaries.put("images", TableInfo.Column("images", "TEXT", true, 0, null,
+            TableInfo.CREATED_FROM_ENTITY))
+        _columnsDiaries.put("audioPath", TableInfo.Column("audioPath", "TEXT", false, 0, null,
             TableInfo.CREATED_FROM_ENTITY))
         _columnsDiaries.put("coverImage", TableInfo.Column("coverImage", "TEXT", false, 0, null,
             TableInfo.CREATED_FROM_ENTITY))

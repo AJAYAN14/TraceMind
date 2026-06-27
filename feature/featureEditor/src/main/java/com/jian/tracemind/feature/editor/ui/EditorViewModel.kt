@@ -11,8 +11,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import android.content.Context
+import android.net.Uri
 import java.util.UUID
 import javax.inject.Inject
+import com.jian.tracemind.feature.editor.utils.MediaHelper
 
 data class EditorUiState(
     val diaryId: String = "",
@@ -23,6 +26,8 @@ data class EditorUiState(
     val mood: String? = null,
     val weather: String? = null,
     val tags: List<String> = emptyList(),
+    val images: List<String> = emptyList(),
+    val audioPath: String? = null,
     val coverImage: String? = null,
     val isSaving: Boolean = false,
     val saveSuccess: Boolean = false
@@ -68,6 +73,8 @@ class EditorViewModel @Inject constructor(
                         mood = diary.mood,
                         weather = diary.weather,
                         tags = diary.tags,
+                        images = diary.images,
+                        audioPath = diary.audioPath,
                         coverImage = diary.coverImage
                     )
                 }
@@ -81,6 +88,34 @@ class EditorViewModel @Inject constructor(
 
     fun onContentChange(content: String) {
         _uiState.update { it.copy(content = content) }
+    }
+
+    fun onImagesSelected(context: Context, uris: List<Uri>) {
+        viewModelScope.launch {
+            val copiedPaths = uris.mapNotNull { uri ->
+                MediaHelper.copyImageToInternalStorage(context, uri)
+            }
+            if (copiedPaths.isNotEmpty()) {
+                _uiState.update { 
+                    it.copy(
+                        images = it.images + copiedPaths,
+                        coverImage = it.coverImage ?: copiedPaths.first() // Set first image as cover if not set
+                    ) 
+                }
+            }
+        }
+    }
+
+    fun onAudioRecorded(path: String) {
+        _uiState.update { it.copy(audioPath = path) }
+    }
+
+    fun onMoodChange(mood: String?) {
+        _uiState.update { it.copy(mood = mood) }
+    }
+
+    fun onWeatherChange(weather: String?) {
+        _uiState.update { it.copy(weather = weather) }
     }
 
     fun saveDiary() {
@@ -105,6 +140,8 @@ class EditorViewModel @Inject constructor(
                 mood = currentState.mood,
                 weather = currentState.weather,
                 tags = currentState.tags,
+                images = currentState.images,
+                audioPath = currentState.audioPath,
                 coverImage = currentState.coverImage
             )
             

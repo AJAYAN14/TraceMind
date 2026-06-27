@@ -2,6 +2,8 @@ package com.jian.tracemind.core.data.di
 
 import android.content.Context
 import androidx.room.Room
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import com.jian.tracemind.core.data.local.TraceMindDatabase
 import com.jian.tracemind.core.data.local.dao.DiaryDao
 import com.jian.tracemind.core.data.local.dao.FolderDao
@@ -21,11 +23,20 @@ object DatabaseModule {
     fun provideTraceMindDatabase(
         @ApplicationContext context: Context
     ): TraceMindDatabase {
+        val MIGRATION_1_2 = object : Migration(1, 2) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE diaries ADD COLUMN images TEXT NOT NULL DEFAULT ''")
+                database.execSQL("ALTER TABLE diaries ADD COLUMN audioPath TEXT")
+            }
+        }
+        
         return Room.databaseBuilder(
             context,
             TraceMindDatabase::class.java,
             "tracemind.db"
-        ).build()
+        )
+        .addMigrations(MIGRATION_1_2)
+        .build()
     }
 
     @Provides

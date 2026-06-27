@@ -9,7 +9,7 @@ import com.jian.tracemind.core.data.local.entity.FolderEntity
 
 @Database(
     entities = [FolderEntity::class, DiaryEntity::class],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class TraceMindDatabase : RoomDatabase() {

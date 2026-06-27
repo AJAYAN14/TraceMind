@@ -14,6 +14,7 @@ import javax.inject.Inject
 
 data class FolderUiState(
     val folderId: String? = null,
+    val currentFolder: Folder? = null,
     val diaries: List<Diary> = emptyList(),
     val folders: List<Folder> = emptyList(),
     val isLoading: Boolean = false,
@@ -58,6 +59,13 @@ class FolderViewModel @Inject constructor(
         viewModelScope.launch {
             folderRepository.getAllFolders().collect { folders ->
                 _uiState.update { it.copy(folders = folders) }
+            }
+        }
+        
+        if (folderId != null) {
+            viewModelScope.launch {
+                val folder = folderRepository.getFolderById(folderId)
+                _uiState.update { it.copy(currentFolder = folder) }
             }
         }
     }
