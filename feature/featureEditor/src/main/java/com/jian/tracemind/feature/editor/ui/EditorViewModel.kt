@@ -118,6 +118,17 @@ class EditorViewModel @Inject constructor(
         _uiState.update { it.copy(weather = weather) }
     }
 
+    fun onAddTag(tag: String) {
+        val trimmed = tag.trim()
+        if (trimmed.isNotEmpty() && trimmed !in _uiState.value.tags) {
+            _uiState.update { it.copy(tags = it.tags + trimmed) }
+        }
+    }
+
+    fun onRemoveTag(tag: String) {
+        _uiState.update { it.copy(tags = it.tags - tag) }
+    }
+
     fun saveDiary() {
         val currentState = _uiState.value
         // Basic validation: skip saving if both title and content are blank

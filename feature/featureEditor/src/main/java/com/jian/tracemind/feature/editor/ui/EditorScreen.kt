@@ -114,14 +114,28 @@ fun EditorScreen(
 
         var showMoodSheet by remember { mutableStateOf(false) }
         var showWeatherSheet by remember { mutableStateOf(false) }
+        var showTagDialog by remember { mutableStateOf(false) }
 
         // Metadata chips
         MetadataChipsRow(
             mood = uiState.mood,
             weather = uiState.weather,
+            tags = uiState.tags,
             onMoodClick = { showMoodSheet = true },
-            onWeatherClick = { showWeatherSheet = true }
+            onWeatherClick = { showWeatherSheet = true },
+            onAddTagClick = { showTagDialog = true },
+            onRemoveTagClick = { viewModel.onRemoveTag(it) }
         )
+
+        if (showTagDialog) {
+            TagInputDialog(
+                onDismiss = { showTagDialog = false },
+                onAddTag = {
+                    viewModel.onAddTag(it)
+                    showTagDialog = false
+                }
+            )
+        }
 
         if (showMoodSheet) {
             MoodSelectionSheet(
@@ -303,8 +317,11 @@ private fun EditorTopBar(onBack: () -> Unit, dateStr: String, onSave: () -> Unit
 private fun MetadataChipsRow(
     mood: String?,
     weather: String?,
+    tags: List<String>,
     onMoodClick: () -> Unit,
-    onWeatherClick: () -> Unit
+    onWeatherClick: () -> Unit,
+    onAddTagClick: () -> Unit,
+    onRemoveTagClick: (String) -> Unit
 ) {
     LazyRow(
         modifier = Modifier
@@ -319,8 +336,11 @@ private fun MetadataChipsRow(
         item {
             ChipItem(label = weather ?: "+ 天气", on = weather != null, onClick = onWeatherClick)
         }
+        items(tags) { tag ->
+            ChipItem(label = "#$tag", on = true, onClick = { onRemoveTagClick(tag) })
+        }
         item {
-            ChipItem(label = "+ 标签", on = false, onClick = {}) // Placeholder for tags
+            ChipItem(label = "+ 标签", on = false, onClick = onAddTagClick)
         }
     }
 }
@@ -522,4 +542,31 @@ private fun EditorBottomToolbar(
             }
         }
     }
+}
+
+@Composable
+private fun TagInputDialog(onDismiss: () -> Unit, onAddTag: (String) -> Unit) {
+    var tagText by remember { mutableStateOf("") }
+    androidx.compose.material3.AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("添加标签") },
+        text = {
+            androidx.compose.material3.OutlinedTextField(
+                value = tagText,
+                onValueChange = { tagText = it },
+                label = { Text("标签名称") },
+                singleLine = true
+            )
+        },
+        confirmButton = {
+            androidx.compose.material3.TextButton(onClick = { onAddTag(tagText) }) {
+                Text("确定")
+            }
+        },
+        dismissButton = {
+            androidx.compose.material3.TextButton(onClick = onDismiss) {
+                Text("取消")
+            }
+        }
+    )
 }
