@@ -23,8 +23,21 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 
+import coil.compose.AsyncImage
+import com.jian.tracemind.core.domain.model.Diary
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import java.util.Calendar
+
 @Composable
-fun OnThisDayCard(modifier: Modifier = Modifier) {
+fun OnThisDayCard(diary: Diary, modifier: Modifier = Modifier) {
+    val formatter = SimpleDateFormat("yyyy年M月d日", Locale.getDefault())
+    val dateStr = formatter.format(Date(diary.createdAt))
+    val currentYear = Calendar.getInstance().get(Calendar.YEAR)
+    val cal = Calendar.getInstance().apply { timeInMillis = diary.createdAt }
+    val yearsAgo = currentYear - cal.get(Calendar.YEAR)
+    val yearsAgoText = if (yearsAgo > 0) "${yearsAgo}年前" else "今天"
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -32,15 +45,17 @@ fun OnThisDayCard(modifier: Modifier = Modifier) {
             .background(Color.White)
     ) {
         Box {
-            AsyncImage(
-                model = "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=180&fit=crop&auto=format",
-                contentDescription = "On This Day Image",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(156.dp)
-                    .background(Color(0xFFF3F4F6)),
-                contentScale = ContentScale.Crop
-            )
+            if (diary.coverImage != null) {
+                AsyncImage(
+                    model = diary.coverImage,
+                    contentDescription = "On This Day Image",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(156.dp)
+                        .background(Color(0xFFF3F4F6)),
+                    contentScale = ContentScale.Crop
+                )
+            }
             Box(
                 modifier = Modifier
                     .padding(12.dp)
@@ -49,7 +64,7 @@ fun OnThisDayCard(modifier: Modifier = Modifier) {
                     .padding(horizontal = 8.dp, vertical = 2.dp)
             ) {
                 Text(
-                    text = "一年前",
+                    text = yearsAgoText,
                     color = Color.White,
                     fontSize = 10.sp,
                     fontWeight = FontWeight.SemiBold
@@ -59,26 +74,33 @@ fun OnThisDayCard(modifier: Modifier = Modifier) {
 
         Column(modifier = Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
+                val subtitle = buildString {
+                    append(dateStr)
+                    if (diary.mood != null) append(" · ${diary.mood}")
+                    if (diary.weather != null) append(" · ${diary.weather}")
+                }
                 Text(
-                    text = "2025年6月24日 · 😌 · 意大利·多洛米蒂",
+                    text = subtitle,
                     color = Color(0xFF9CA3AF),
                     fontSize = 10.sp
                 )
             }
             Spacer(modifier = Modifier.height(4.dp))
+            if (diary.title.isNotBlank()) {
+                Text(
+                    text = diary.title,
+                    color = Color(0xFF1A1C1E),
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold,
+                    lineHeight = 20.sp
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+            }
             Text(
-                text = "海拔3200米的清晨",
-                color = Color(0xFF1A1C1E),
-                fontSize = 15.sp,
-                fontWeight = FontWeight.Bold,
-                lineHeight = 20.sp
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = "太阳刚破云而出，我便到达了山脊。整个山谷在瞬间染成了金色。",
+                text = diary.content,
                 color = Color(0xFF6B7280),
                 fontSize = 13.sp,
-                maxLines = 2,
+                maxLines = 3,
                 overflow = TextOverflow.Ellipsis,
                 lineHeight = 18.sp
             )

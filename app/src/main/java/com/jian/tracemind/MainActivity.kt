@@ -23,8 +23,10 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.jian.tracemind.navigation.AppRoute
@@ -142,7 +144,8 @@ class MainActivity : ComponentActivity() {
                             composable(AppRoute.Home.route) {
                                 HomeScreen(
                                     innerPadding = innerPadding,
-                                    onAddClick = { navController.navigate(AppRoute.Editor.route) },
+                                    onAddClick = { navController.navigate(AppRoute.Editor.createRoute()) },
+                                    onDiaryClick = { id -> navController.navigate(AppRoute.Editor.createRoute(diaryId = id)) },
                                     modifier = Modifier.fillMaxSize()
                                 )
                             }
@@ -155,7 +158,21 @@ class MainActivity : ComponentActivity() {
                             composable(AppRoute.Profile.route) {
                                 ProfileScreen(innerPadding = innerPadding, modifier = Modifier.fillMaxSize())
                             }
-                            composable(AppRoute.Editor.route) {
+                            composable(
+                                route = AppRoute.Editor.route,
+                                arguments = listOf(
+                                    navArgument("diaryId") {
+                                        type = NavType.StringType
+                                        nullable = true
+                                        defaultValue = null
+                                    },
+                                    navArgument("folderId") {
+                                        type = NavType.StringType
+                                        nullable = true
+                                        defaultValue = null
+                                    }
+                                )
+                            ) {
                                 EditorScreen(
                                     onBack = { navController.popBackStack() },
                                     modifier = Modifier.fillMaxSize(),

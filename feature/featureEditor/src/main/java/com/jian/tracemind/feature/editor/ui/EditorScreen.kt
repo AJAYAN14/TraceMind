@@ -8,29 +8,52 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @Composable
 fun EditorScreen(
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
-    innerPadding: PaddingValues = PaddingValues()
+    innerPadding: PaddingValues = PaddingValues(),
+    viewModel: EditorViewModel = hiltViewModel()
 ) {
+    val uiState by viewModel.uiState.collectAsState()
+
+    LaunchedEffect(uiState.saveSuccess) {
+        if (uiState.saveSuccess) {
+            onBack()
+        }
+    }
+
+    val formatter = remember { SimpleDateFormat("EEEE，M月d日", Locale.CHINESE) }
+    val dateStr = formatter.format(Date(uiState.createdAt))
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -39,7 +62,7 @@ fun EditorScreen(
     ) {
         // App Bar
         Spacer(modifier = Modifier.height(innerPadding.calculateTopPadding()))
-        EditorTopBar(onBack = onBack)
+        EditorTopBar(onBack = onBack, dateStr = dateStr, onSave = { viewModel.saveDiary() })
 
         // Metadata chips
         MetadataChipsRow()
@@ -53,20 +76,52 @@ fun EditorScreen(
                 .padding(horizontal = 20.dp, vertical = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Title placeholder
-            Text(
-                text = "日记标题...",
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFFC8CACC)
+            // Title
+            BasicTextField(
+                value = uiState.title,
+                onValueChange = viewModel::onTitleChange,
+                textStyle = TextStyle(
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF1A1C1E)
+                ),
+                cursorBrush = SolidColor(Color(0xFF1A1C1E)),
+                decorationBox = { innerTextField ->
+                    if (uiState.title.isEmpty()) {
+                        Text(
+                            text = "日记标题...",
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFFC8CACC)
+                        )
+                    }
+                    innerTextField()
+                },
+                modifier = Modifier.fillMaxWidth()
             )
 
             // Body paragraphs
-            Text(
-                text = "日落时分抵达京都。空气潮湿却令人舒适。\n入住了不审町一条小巷里的町家——杉木墙壁，旧纸气息，绝对的寂静。\n\n徒步抵达一个地方，背着沉重的行囊，有一种独特的真实感。\n没有过渡，没有缓冲，只有这座城市和你。",
-                fontSize = 14.sp,
-                color = Color(0xFF1A1C1E),
-                lineHeight = 24.sp
+            BasicTextField(
+                value = uiState.content,
+                onValueChange = viewModel::onContentChange,
+                textStyle = TextStyle(
+                    fontSize = 14.sp,
+                    color = Color(0xFF1A1C1E),
+                    lineHeight = 24.sp
+                ),
+                cursorBrush = SolidColor(Color(0xFF1A1C1E)),
+                decorationBox = { innerTextField ->
+                    if (uiState.content.isEmpty()) {
+                        Text(
+                            text = "开始记录...",
+                            fontSize = 14.sp,
+                            color = Color(0xFFC8CACC),
+                            lineHeight = 24.sp
+                        )
+                    }
+                    innerTextField()
+                },
+                modifier = Modifier.fillMaxWidth()
             )
 
             // Image block
@@ -103,7 +158,7 @@ fun EditorScreen(
 }
 
 @Composable
-private fun EditorTopBar(onBack: () -> Unit) {
+private fun EditorTopBar(onBack: () -> Unit, dateStr: String, onSave: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -120,7 +175,7 @@ private fun EditorTopBar(onBack: () -> Unit) {
             )
         }
         Text(
-            text = "周三，6月24日",
+            text = dateStr,
             fontSize = 13.sp,
             fontWeight = FontWeight.SemiBold,
             color = Color(0xFF1A1C1E)
@@ -129,7 +184,7 @@ private fun EditorTopBar(onBack: () -> Unit) {
             modifier = Modifier
                 .clip(RoundedCornerShape(10.dp))
                 .background(Color(0xFF1A1C1E))
-                .clickable { /* TODO: save */ }
+                .clickable { onSave() }
                 .padding(horizontal = 12.dp, vertical = 6.dp),
             contentAlignment = Alignment.Center
         ) {

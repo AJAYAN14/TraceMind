@@ -15,7 +15,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.jian.tracemind.feature.home.ui.Folder
+import com.jian.tracemind.core.domain.model.Folder
 
 @Composable
 fun FolderCard(folder: Folder, modifier: Modifier = Modifier) {
@@ -26,16 +26,16 @@ fun FolderCard(folder: Folder, modifier: Modifier = Modifier) {
             .background(Color.White)
             .padding(horizontal = 14.dp, vertical = 12.dp)
     ) {
-        Text(text = folder.icon, fontSize = 20.sp)
+        Text(text = "📁", fontSize = 20.sp) // Default icon for now
         Spacer(modifier = Modifier.height(4.dp))
         Text(
-            text = folder.title,
+            text = folder.name,
             color = Color(0xFF1A1C1E),
             fontSize = 12.sp,
             fontWeight = FontWeight.SemiBold
         )
         Text(
-            text = "${folder.count} 篇",
+            text = "0 篇", // Need to query diary count for folder if we want this, or omit it
             color = Color(0xFF9CA3AF),
             fontSize = 10.sp
         )

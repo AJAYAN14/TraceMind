@@ -16,6 +16,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -29,7 +32,12 @@ import com.jian.tracemind.feature.insights.ui.components.MoodTrendsCard
 import com.jian.tracemind.feature.insights.ui.components.TagCloudCard
 
 @Composable
-fun InsightsScreen(innerPadding: PaddingValues, modifier: Modifier = Modifier) {
+fun InsightsScreen(
+    innerPadding: PaddingValues, 
+    modifier: Modifier = Modifier,
+    viewModel: InsightsViewModel = hiltViewModel()
+) {
+    val uiState by viewModel.uiState.collectAsState()
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -52,7 +60,7 @@ fun InsightsScreen(innerPadding: PaddingValues, modifier: Modifier = Modifier) {
                 item {
                     Column {
                         SectionLabel("写作热力图")
-                        HeatmapCard()
+                        HeatmapCard(heatmapData = uiState.heatmapData)
                     }
                 }
                 

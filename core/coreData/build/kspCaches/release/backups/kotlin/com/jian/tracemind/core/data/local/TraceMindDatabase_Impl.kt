@@ -47,12 +47,12 @@ public class TraceMindDatabase_Impl : TraceMindDatabase() {
 
   protected override fun createOpenDelegate(): RoomOpenDelegate {
     val _openDelegate: RoomOpenDelegate = object : RoomOpenDelegate(1,
-        "0323c57ae36d1e26e80cb041ff6cb4e7", "1289111747f436dcfdf3f6385c320060") {
+        "2d59f4e021060c8f3126f5cf4cc9d516", "deda4d56f78d56fb2f16d68bedaeb9f8") {
       public override fun createAllTables(connection: SQLiteConnection) {
         connection.execSQL("CREATE TABLE IF NOT EXISTS `folders` (`id` TEXT NOT NULL, `parentId` TEXT, `name` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `updatedAt` INTEGER NOT NULL, PRIMARY KEY(`id`))")
-        connection.execSQL("CREATE TABLE IF NOT EXISTS `diaries` (`id` TEXT NOT NULL, `folderId` TEXT, `title` TEXT NOT NULL, `content` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `updatedAt` INTEGER NOT NULL, `mood` TEXT, `weather` TEXT, `tags` TEXT NOT NULL, PRIMARY KEY(`id`))")
+        connection.execSQL("CREATE TABLE IF NOT EXISTS `diaries` (`id` TEXT NOT NULL, `folderId` TEXT, `title` TEXT NOT NULL, `content` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `updatedAt` INTEGER NOT NULL, `mood` TEXT, `weather` TEXT, `tags` TEXT NOT NULL, `coverImage` TEXT, PRIMARY KEY(`id`))")
         connection.execSQL("CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)")
-        connection.execSQL("INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '0323c57ae36d1e26e80cb041ff6cb4e7')")
+        connection.execSQL("INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '2d59f4e021060c8f3126f5cf4cc9d516')")
       }
 
       public override fun dropAllTables(connection: SQLiteConnection) {
@@ -119,6 +119,8 @@ public class TraceMindDatabase_Impl : TraceMindDatabase() {
         _columnsDiaries.put("weather", TableInfo.Column("weather", "TEXT", false, 0, null,
             TableInfo.CREATED_FROM_ENTITY))
         _columnsDiaries.put("tags", TableInfo.Column("tags", "TEXT", true, 0, null,
+            TableInfo.CREATED_FROM_ENTITY))
+        _columnsDiaries.put("coverImage", TableInfo.Column("coverImage", "TEXT", false, 0, null,
             TableInfo.CREATED_FROM_ENTITY))
         val _foreignKeysDiaries: MutableSet<TableInfo.ForeignKey> = mutableSetOf()
         val _indicesDiaries: MutableSet<TableInfo.Index> = mutableSetOf()

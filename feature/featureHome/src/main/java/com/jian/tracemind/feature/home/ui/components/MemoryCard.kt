@@ -25,10 +25,15 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import com.jian.tracemind.feature.home.ui.Memory
+import com.jian.tracemind.core.domain.model.Diary
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @Composable
-fun MemoryCard(memory: Memory, modifier: Modifier = Modifier) {
+fun MemoryCard(diary: Diary, modifier: Modifier = Modifier) {
+    val formatter = SimpleDateFormat("M月d日", Locale.getDefault())
+    val dateStr = formatter.format(Date(diary.createdAt))
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -39,7 +44,7 @@ fun MemoryCard(memory: Memory, modifier: Modifier = Modifier) {
     ) {
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = memory.title,
+                text = diary.title.ifBlank { diary.content.take(20) },
                 color = Color(0xFF1A1C1E),
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
@@ -47,7 +52,7 @@ fun MemoryCard(memory: Memory, modifier: Modifier = Modifier) {
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = memory.preview,
+                text = diary.content,
                 color = Color(0xFF6B7280),
                 fontSize = 12.sp,
                 maxLines = 2,
@@ -56,35 +61,38 @@ fun MemoryCard(memory: Memory, modifier: Modifier = Modifier) {
             )
             Spacer(modifier = Modifier.height(8.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(text = memory.date, color = Color(0xFF9CA3AF), fontSize = 11.sp)
-                Spacer(modifier = Modifier.width(10.dp))
-                Text(text = memory.mood, fontSize = 12.sp)
-                Spacer(modifier = Modifier.width(10.dp))
-                Icon(
-                    imageVector = Icons.Default.LocationOn,
-                    contentDescription = "Location",
-                    tint = Color(0xFF9CA3AF),
-                    modifier = Modifier.size(10.dp)
-                )
-                Spacer(modifier = Modifier.width(2.dp))
-                Text(
-                    text = memory.location,
-                    color = Color(0xFF9CA3AF),
-                    fontSize = 10.sp,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
+                Text(text = dateStr, color = Color(0xFF9CA3AF), fontSize = 11.sp)
+                
+                val mood = diary.mood
+                if (mood != null) {
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Text(text = mood, fontSize = 12.sp)
+                }
+                
+                val weather = diary.weather
+                if (weather != null) {
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Text(
+                        text = weather,
+                        color = Color(0xFF9CA3AF),
+                        fontSize = 10.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
             }
         }
         Spacer(modifier = Modifier.width(12.dp))
-        AsyncImage(
-            model = memory.imgUrl,
-            contentDescription = memory.title,
+        if (diary.coverImage != null) {
+            AsyncImage(
+                model = diary.coverImage,
+                contentDescription = diary.title,
             modifier = Modifier
                 .size(60.dp)
                 .clip(RoundedCornerShape(12.dp))
                 .background(Color(0xFFF3F4F6)),
             contentScale = ContentScale.Crop
         )
+    }
     }
 }

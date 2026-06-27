@@ -1,0 +1,1 @@
+-keep,allowobfuscation,allowshrinking class com.jian.tracemind.feature.editor.ui.EditorViewModel

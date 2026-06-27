@@ -19,6 +19,15 @@ interface DiaryDao {
     @Query("SELECT * FROM diaries WHERE folderId IS NULL")
     fun getDiariesInRootFolder(): Flow<List<DiaryEntity>>
 
+    @Query("SELECT * FROM diaries WHERE content LIKE '%' || :query || '%' OR title LIKE '%' || :query || '%' ORDER BY createdAt DESC")
+    fun searchDiaries(query: String): Flow<List<DiaryEntity>>
+
+    @Query("SELECT createdAt FROM diaries")
+    fun getAllDiaryTimestamps(): Flow<List<Long>>
+
+    @Query("SELECT * FROM diaries WHERE strftime('%m-%d', createdAt / 1000, 'unixepoch', 'localtime') = :monthDay ORDER BY createdAt DESC")
+    fun getDiariesByMonthDay(monthDay: String): Flow<List<DiaryEntity>>
+
     @Query("SELECT * FROM diaries WHERE id = :id")
     suspend fun getDiaryById(id: String): DiaryEntity?
 

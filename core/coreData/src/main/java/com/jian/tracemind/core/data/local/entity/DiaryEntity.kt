@@ -15,7 +15,8 @@ data class DiaryEntity(
     val updatedAt: Long,
     val mood: String?,
     val weather: String?,
-    val tags: String // stored as comma-separated or JSON string since Room doesn't support List out of the box without TypeConverter
+    val tags: String, // stored as comma-separated or JSON string since Room doesn't support List out of the box without TypeConverter
+    val coverImage: String? = null
 )
 
 fun DiaryEntity.toDomainModel(): Diary {
@@ -28,7 +29,8 @@ fun DiaryEntity.toDomainModel(): Diary {
         updatedAt = updatedAt,
         mood = mood,
         weather = weather,
-        tags = if (tags.isBlank()) emptyList() else tags.split(",")
+        tags = if (tags.isBlank()) emptyList() else tags.split(","),
+        coverImage = coverImage
     )
 }
 
@@ -42,6 +44,7 @@ fun Diary.toEntity(): DiaryEntity {
         updatedAt = updatedAt,
         mood = mood,
         weather = weather,
-        tags = tags.joinToString(",")
+        tags = tags.joinToString(","),
+        coverImage = coverImage
     )
 }

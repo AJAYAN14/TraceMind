@@ -34,7 +34,7 @@ public class DiaryDao_Impl(
     this.__db = __db
     this.__insertAdapterOfDiaryEntity = object : EntityInsertAdapter<DiaryEntity>() {
       protected override fun createQuery(): String =
-          "INSERT OR REPLACE INTO `diaries` (`id`,`folderId`,`title`,`content`,`createdAt`,`updatedAt`,`mood`,`weather`,`tags`) VALUES (?,?,?,?,?,?,?,?,?)"
+          "INSERT OR REPLACE INTO `diaries` (`id`,`folderId`,`title`,`content`,`createdAt`,`updatedAt`,`mood`,`weather`,`tags`,`coverImage`) VALUES (?,?,?,?,?,?,?,?,?,?)"
 
       protected override fun bind(statement: SQLiteStatement, entity: DiaryEntity) {
         statement.bindText(1, entity.id)
@@ -61,11 +61,17 @@ public class DiaryDao_Impl(
           statement.bindText(8, _tmpWeather)
         }
         statement.bindText(9, entity.tags)
+        val _tmpCoverImage: String? = entity.coverImage
+        if (_tmpCoverImage == null) {
+          statement.bindNull(10)
+        } else {
+          statement.bindText(10, _tmpCoverImage)
+        }
       }
     }
     this.__updateAdapterOfDiaryEntity = object : EntityDeleteOrUpdateAdapter<DiaryEntity>() {
       protected override fun createQuery(): String =
-          "UPDATE OR ABORT `diaries` SET `id` = ?,`folderId` = ?,`title` = ?,`content` = ?,`createdAt` = ?,`updatedAt` = ?,`mood` = ?,`weather` = ?,`tags` = ? WHERE `id` = ?"
+          "UPDATE OR ABORT `diaries` SET `id` = ?,`folderId` = ?,`title` = ?,`content` = ?,`createdAt` = ?,`updatedAt` = ?,`mood` = ?,`weather` = ?,`tags` = ?,`coverImage` = ? WHERE `id` = ?"
 
       protected override fun bind(statement: SQLiteStatement, entity: DiaryEntity) {
         statement.bindText(1, entity.id)
@@ -92,7 +98,13 @@ public class DiaryDao_Impl(
           statement.bindText(8, _tmpWeather)
         }
         statement.bindText(9, entity.tags)
-        statement.bindText(10, entity.id)
+        val _tmpCoverImage: String? = entity.coverImage
+        if (_tmpCoverImage == null) {
+          statement.bindNull(10)
+        } else {
+          statement.bindText(10, _tmpCoverImage)
+        }
+        statement.bindText(11, entity.id)
       }
     }
   }
@@ -121,6 +133,7 @@ public class DiaryDao_Impl(
         val _columnIndexOfMood: Int = getColumnIndexOrThrow(_stmt, "mood")
         val _columnIndexOfWeather: Int = getColumnIndexOrThrow(_stmt, "weather")
         val _columnIndexOfTags: Int = getColumnIndexOrThrow(_stmt, "tags")
+        val _columnIndexOfCoverImage: Int = getColumnIndexOrThrow(_stmt, "coverImage")
         val _result: MutableList<DiaryEntity> = mutableListOf()
         while (_stmt.step()) {
           val _item: DiaryEntity
@@ -154,8 +167,14 @@ public class DiaryDao_Impl(
           }
           val _tmpTags: String
           _tmpTags = _stmt.getText(_columnIndexOfTags)
+          val _tmpCoverImage: String?
+          if (_stmt.isNull(_columnIndexOfCoverImage)) {
+            _tmpCoverImage = null
+          } else {
+            _tmpCoverImage = _stmt.getText(_columnIndexOfCoverImage)
+          }
           _item =
-              DiaryEntity(_tmpId,_tmpFolderId,_tmpTitle,_tmpContent,_tmpCreatedAt,_tmpUpdatedAt,_tmpMood,_tmpWeather,_tmpTags)
+              DiaryEntity(_tmpId,_tmpFolderId,_tmpTitle,_tmpContent,_tmpCreatedAt,_tmpUpdatedAt,_tmpMood,_tmpWeather,_tmpTags,_tmpCoverImage)
           _result.add(_item)
         }
         _result
@@ -181,6 +200,7 @@ public class DiaryDao_Impl(
         val _columnIndexOfMood: Int = getColumnIndexOrThrow(_stmt, "mood")
         val _columnIndexOfWeather: Int = getColumnIndexOrThrow(_stmt, "weather")
         val _columnIndexOfTags: Int = getColumnIndexOrThrow(_stmt, "tags")
+        val _columnIndexOfCoverImage: Int = getColumnIndexOrThrow(_stmt, "coverImage")
         val _result: MutableList<DiaryEntity> = mutableListOf()
         while (_stmt.step()) {
           val _item: DiaryEntity
@@ -214,8 +234,14 @@ public class DiaryDao_Impl(
           }
           val _tmpTags: String
           _tmpTags = _stmt.getText(_columnIndexOfTags)
+          val _tmpCoverImage: String?
+          if (_stmt.isNull(_columnIndexOfCoverImage)) {
+            _tmpCoverImage = null
+          } else {
+            _tmpCoverImage = _stmt.getText(_columnIndexOfCoverImage)
+          }
           _item =
-              DiaryEntity(_tmpId,_tmpFolderId,_tmpTitle,_tmpContent,_tmpCreatedAt,_tmpUpdatedAt,_tmpMood,_tmpWeather,_tmpTags)
+              DiaryEntity(_tmpId,_tmpFolderId,_tmpTitle,_tmpContent,_tmpCreatedAt,_tmpUpdatedAt,_tmpMood,_tmpWeather,_tmpTags,_tmpCoverImage)
           _result.add(_item)
         }
         _result
@@ -239,6 +265,7 @@ public class DiaryDao_Impl(
         val _columnIndexOfMood: Int = getColumnIndexOrThrow(_stmt, "mood")
         val _columnIndexOfWeather: Int = getColumnIndexOrThrow(_stmt, "weather")
         val _columnIndexOfTags: Int = getColumnIndexOrThrow(_stmt, "tags")
+        val _columnIndexOfCoverImage: Int = getColumnIndexOrThrow(_stmt, "coverImage")
         val _result: MutableList<DiaryEntity> = mutableListOf()
         while (_stmt.step()) {
           val _item: DiaryEntity
@@ -272,8 +299,170 @@ public class DiaryDao_Impl(
           }
           val _tmpTags: String
           _tmpTags = _stmt.getText(_columnIndexOfTags)
+          val _tmpCoverImage: String?
+          if (_stmt.isNull(_columnIndexOfCoverImage)) {
+            _tmpCoverImage = null
+          } else {
+            _tmpCoverImage = _stmt.getText(_columnIndexOfCoverImage)
+          }
           _item =
-              DiaryEntity(_tmpId,_tmpFolderId,_tmpTitle,_tmpContent,_tmpCreatedAt,_tmpUpdatedAt,_tmpMood,_tmpWeather,_tmpTags)
+              DiaryEntity(_tmpId,_tmpFolderId,_tmpTitle,_tmpContent,_tmpCreatedAt,_tmpUpdatedAt,_tmpMood,_tmpWeather,_tmpTags,_tmpCoverImage)
+          _result.add(_item)
+        }
+        _result
+      } finally {
+        _stmt.close()
+      }
+    }
+  }
+
+  public override fun searchDiaries(query: String): Flow<List<DiaryEntity>> {
+    val _sql: String =
+        "SELECT * FROM diaries WHERE content LIKE '%' || ? || '%' OR title LIKE '%' || ? || '%' ORDER BY createdAt DESC"
+    return createFlow(__db, false, arrayOf("diaries")) { _connection ->
+      val _stmt: SQLiteStatement = _connection.prepare(_sql)
+      try {
+        var _argIndex: Int = 1
+        _stmt.bindText(_argIndex, query)
+        _argIndex = 2
+        _stmt.bindText(_argIndex, query)
+        val _columnIndexOfId: Int = getColumnIndexOrThrow(_stmt, "id")
+        val _columnIndexOfFolderId: Int = getColumnIndexOrThrow(_stmt, "folderId")
+        val _columnIndexOfTitle: Int = getColumnIndexOrThrow(_stmt, "title")
+        val _columnIndexOfContent: Int = getColumnIndexOrThrow(_stmt, "content")
+        val _columnIndexOfCreatedAt: Int = getColumnIndexOrThrow(_stmt, "createdAt")
+        val _columnIndexOfUpdatedAt: Int = getColumnIndexOrThrow(_stmt, "updatedAt")
+        val _columnIndexOfMood: Int = getColumnIndexOrThrow(_stmt, "mood")
+        val _columnIndexOfWeather: Int = getColumnIndexOrThrow(_stmt, "weather")
+        val _columnIndexOfTags: Int = getColumnIndexOrThrow(_stmt, "tags")
+        val _columnIndexOfCoverImage: Int = getColumnIndexOrThrow(_stmt, "coverImage")
+        val _result: MutableList<DiaryEntity> = mutableListOf()
+        while (_stmt.step()) {
+          val _item: DiaryEntity
+          val _tmpId: String
+          _tmpId = _stmt.getText(_columnIndexOfId)
+          val _tmpFolderId: String?
+          if (_stmt.isNull(_columnIndexOfFolderId)) {
+            _tmpFolderId = null
+          } else {
+            _tmpFolderId = _stmt.getText(_columnIndexOfFolderId)
+          }
+          val _tmpTitle: String
+          _tmpTitle = _stmt.getText(_columnIndexOfTitle)
+          val _tmpContent: String
+          _tmpContent = _stmt.getText(_columnIndexOfContent)
+          val _tmpCreatedAt: Long
+          _tmpCreatedAt = _stmt.getLong(_columnIndexOfCreatedAt)
+          val _tmpUpdatedAt: Long
+          _tmpUpdatedAt = _stmt.getLong(_columnIndexOfUpdatedAt)
+          val _tmpMood: String?
+          if (_stmt.isNull(_columnIndexOfMood)) {
+            _tmpMood = null
+          } else {
+            _tmpMood = _stmt.getText(_columnIndexOfMood)
+          }
+          val _tmpWeather: String?
+          if (_stmt.isNull(_columnIndexOfWeather)) {
+            _tmpWeather = null
+          } else {
+            _tmpWeather = _stmt.getText(_columnIndexOfWeather)
+          }
+          val _tmpTags: String
+          _tmpTags = _stmt.getText(_columnIndexOfTags)
+          val _tmpCoverImage: String?
+          if (_stmt.isNull(_columnIndexOfCoverImage)) {
+            _tmpCoverImage = null
+          } else {
+            _tmpCoverImage = _stmt.getText(_columnIndexOfCoverImage)
+          }
+          _item =
+              DiaryEntity(_tmpId,_tmpFolderId,_tmpTitle,_tmpContent,_tmpCreatedAt,_tmpUpdatedAt,_tmpMood,_tmpWeather,_tmpTags,_tmpCoverImage)
+          _result.add(_item)
+        }
+        _result
+      } finally {
+        _stmt.close()
+      }
+    }
+  }
+
+  public override fun getAllDiaryTimestamps(): Flow<List<Long>> {
+    val _sql: String = "SELECT createdAt FROM diaries"
+    return createFlow(__db, false, arrayOf("diaries")) { _connection ->
+      val _stmt: SQLiteStatement = _connection.prepare(_sql)
+      try {
+        val _result: MutableList<Long> = mutableListOf()
+        while (_stmt.step()) {
+          val _item: Long
+          _item = _stmt.getLong(0)
+          _result.add(_item)
+        }
+        _result
+      } finally {
+        _stmt.close()
+      }
+    }
+  }
+
+  public override fun getDiariesByMonthDay(monthDay: String): Flow<List<DiaryEntity>> {
+    val _sql: String =
+        "SELECT * FROM diaries WHERE strftime('%m-%d', createdAt / 1000, 'unixepoch', 'localtime') = ? ORDER BY createdAt DESC"
+    return createFlow(__db, false, arrayOf("diaries")) { _connection ->
+      val _stmt: SQLiteStatement = _connection.prepare(_sql)
+      try {
+        var _argIndex: Int = 1
+        _stmt.bindText(_argIndex, monthDay)
+        val _columnIndexOfId: Int = getColumnIndexOrThrow(_stmt, "id")
+        val _columnIndexOfFolderId: Int = getColumnIndexOrThrow(_stmt, "folderId")
+        val _columnIndexOfTitle: Int = getColumnIndexOrThrow(_stmt, "title")
+        val _columnIndexOfContent: Int = getColumnIndexOrThrow(_stmt, "content")
+        val _columnIndexOfCreatedAt: Int = getColumnIndexOrThrow(_stmt, "createdAt")
+        val _columnIndexOfUpdatedAt: Int = getColumnIndexOrThrow(_stmt, "updatedAt")
+        val _columnIndexOfMood: Int = getColumnIndexOrThrow(_stmt, "mood")
+        val _columnIndexOfWeather: Int = getColumnIndexOrThrow(_stmt, "weather")
+        val _columnIndexOfTags: Int = getColumnIndexOrThrow(_stmt, "tags")
+        val _columnIndexOfCoverImage: Int = getColumnIndexOrThrow(_stmt, "coverImage")
+        val _result: MutableList<DiaryEntity> = mutableListOf()
+        while (_stmt.step()) {
+          val _item: DiaryEntity
+          val _tmpId: String
+          _tmpId = _stmt.getText(_columnIndexOfId)
+          val _tmpFolderId: String?
+          if (_stmt.isNull(_columnIndexOfFolderId)) {
+            _tmpFolderId = null
+          } else {
+            _tmpFolderId = _stmt.getText(_columnIndexOfFolderId)
+          }
+          val _tmpTitle: String
+          _tmpTitle = _stmt.getText(_columnIndexOfTitle)
+          val _tmpContent: String
+          _tmpContent = _stmt.getText(_columnIndexOfContent)
+          val _tmpCreatedAt: Long
+          _tmpCreatedAt = _stmt.getLong(_columnIndexOfCreatedAt)
+          val _tmpUpdatedAt: Long
+          _tmpUpdatedAt = _stmt.getLong(_columnIndexOfUpdatedAt)
+          val _tmpMood: String?
+          if (_stmt.isNull(_columnIndexOfMood)) {
+            _tmpMood = null
+          } else {
+            _tmpMood = _stmt.getText(_columnIndexOfMood)
+          }
+          val _tmpWeather: String?
+          if (_stmt.isNull(_columnIndexOfWeather)) {
+            _tmpWeather = null
+          } else {
+            _tmpWeather = _stmt.getText(_columnIndexOfWeather)
+          }
+          val _tmpTags: String
+          _tmpTags = _stmt.getText(_columnIndexOfTags)
+          val _tmpCoverImage: String?
+          if (_stmt.isNull(_columnIndexOfCoverImage)) {
+            _tmpCoverImage = null
+          } else {
+            _tmpCoverImage = _stmt.getText(_columnIndexOfCoverImage)
+          }
+          _item =
+              DiaryEntity(_tmpId,_tmpFolderId,_tmpTitle,_tmpContent,_tmpCreatedAt,_tmpUpdatedAt,_tmpMood,_tmpWeather,_tmpTags,_tmpCoverImage)
           _result.add(_item)
         }
         _result
@@ -299,6 +488,7 @@ public class DiaryDao_Impl(
         val _columnIndexOfMood: Int = getColumnIndexOrThrow(_stmt, "mood")
         val _columnIndexOfWeather: Int = getColumnIndexOrThrow(_stmt, "weather")
         val _columnIndexOfTags: Int = getColumnIndexOrThrow(_stmt, "tags")
+        val _columnIndexOfCoverImage: Int = getColumnIndexOrThrow(_stmt, "coverImage")
         val _result: DiaryEntity?
         if (_stmt.step()) {
           val _tmpId: String
@@ -331,8 +521,14 @@ public class DiaryDao_Impl(
           }
           val _tmpTags: String
           _tmpTags = _stmt.getText(_columnIndexOfTags)
+          val _tmpCoverImage: String?
+          if (_stmt.isNull(_columnIndexOfCoverImage)) {
+            _tmpCoverImage = null
+          } else {
+            _tmpCoverImage = _stmt.getText(_columnIndexOfCoverImage)
+          }
           _result =
-              DiaryEntity(_tmpId,_tmpFolderId,_tmpTitle,_tmpContent,_tmpCreatedAt,_tmpUpdatedAt,_tmpMood,_tmpWeather,_tmpTags)
+              DiaryEntity(_tmpId,_tmpFolderId,_tmpTitle,_tmpContent,_tmpCreatedAt,_tmpUpdatedAt,_tmpMood,_tmpWeather,_tmpTags,_tmpCoverImage)
         } else {
           _result = null
         }

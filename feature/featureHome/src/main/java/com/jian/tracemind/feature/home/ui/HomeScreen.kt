@@ -1,6 +1,7 @@
 package com.jian.tracemind.feature.home.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,6 +27,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -42,8 +46,11 @@ import com.jian.tracemind.feature.home.ui.components.OnThisDayCard
 fun HomeScreen(
     innerPadding: PaddingValues,
     onAddClick: () -> Unit = {},
+    onDiaryClick: (String) -> Unit = {},
+    viewModel: HomeViewModel = hiltViewModel(),
     modifier: Modifier = Modifier
 ) {
+    val uiState by viewModel.uiState.collectAsState()
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -63,10 +70,17 @@ fun HomeScreen(
                 ),
                 verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
-                item {
-                    Column {
-                        SectionLabel("往日今天")
-                        OnThisDayCard()
+                if (uiState.onThisDayDiaries.isNotEmpty()) {
+                    item {
+                        Column {
+                            SectionLabel("往日今天")
+                            // Pass the first one for now, or build a pager
+                            val firstDiary = uiState.onThisDayDiaries.first()
+                            OnThisDayCard(
+                                diary = firstDiary,
+                                modifier = Modifier.clickable { onDiaryClick(firstDiary.id) }
+                            )
+                        }
                     }
                 }
 
@@ -89,8 +103,8 @@ fun HomeScreen(
                         LazyRow(
                             horizontalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
-                            items(HomeMockData.foldersData) { folder ->
-                                FolderCard(folder = folder)
+                            items(uiState.folders) { folder ->
+                                FolderCard(folder = folder) // Might need mapping if mock format differs
                             }
                         }
                     }
@@ -101,8 +115,11 @@ fun HomeScreen(
                         SectionLabel("最近的记忆")
                         Spacer(modifier = Modifier.height(2.dp))
                         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                            HomeMockData.memories.forEach { memory ->
-                                MemoryCard(memory = memory)
+                            uiState.recentMemories.forEach { memory ->
+                                MemoryCard(
+                                    diary = memory,
+                                    modifier = Modifier.clickable { onDiaryClick(memory.id) }
+                                )
                             }
                         }
                     }

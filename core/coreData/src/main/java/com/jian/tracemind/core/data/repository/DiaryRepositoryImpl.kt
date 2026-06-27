@@ -30,6 +30,22 @@ class DiaryRepositoryImpl @Inject constructor(
         }
     }
 
+    override fun searchDiaries(query: String): Flow<List<Diary>> {
+        return diaryDao.searchDiaries(query).map { entities ->
+            entities.map { it.toDomainModel() }
+        }
+    }
+
+    override fun getAllDiaryTimestamps(): Flow<List<Long>> {
+        return diaryDao.getAllDiaryTimestamps()
+    }
+
+    override fun getDiariesByMonthDay(monthDay: String): Flow<List<Diary>> {
+        return diaryDao.getDiariesByMonthDay(monthDay).map { entities ->
+            entities.map { it.toDomainModel() }
+        }
+    }
+
     override suspend fun getDiaryById(id: String): Diary? {
         return diaryDao.getDiaryById(id)?.toDomainModel()
     }
