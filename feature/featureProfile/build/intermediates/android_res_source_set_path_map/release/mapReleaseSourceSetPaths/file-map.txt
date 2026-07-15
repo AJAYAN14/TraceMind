@@ -1,9 +1,0 @@
-com.jian.tracemind.feature.profile.featureProfile-pngs-0 E:\Android\TraceMind\feature\featureProfile\build\generated\res\pngs\release
-com.jian.tracemind.feature.profile.featureProfile-updated_navigation_xml-1 E:\Android\TraceMind\feature\featureProfile\build\generated\updated_navigation_xml\release
-com.jian.tracemind.feature.profile.featureProfile-mergeReleaseResources-2 E:\Android\TraceMind\feature\featureProfile\build\intermediates\incremental\release\mergeReleaseResources\merged.dir
-com.jian.tracemind.feature.profile.featureProfile-mergeReleaseResources-3 E:\Android\TraceMind\feature\featureProfile\build\intermediates\incremental\release\mergeReleaseResources\stripped.dir
-com.jian.tracemind.feature.profile.featureProfile-release-4 E:\Android\TraceMind\feature\featureProfile\build\intermediates\merged_res\release\mergeReleaseResources
-com.jian.tracemind.feature.profile.featureProfile-release-5 E:\Android\TraceMind\feature\featureProfile\build\intermediates\packaged_res\release\packageReleaseResources
-com.jian.tracemind.feature.profile.featureProfile-main-6 E:\Android\TraceMind\feature\featureProfile\src\main\res
-com.jian.tracemind.feature.profile.featureProfile-release-7 E:\Android\TraceMind\feature\featureProfile\src\release\res
-gradleHome-0 D:\Android\.gradle

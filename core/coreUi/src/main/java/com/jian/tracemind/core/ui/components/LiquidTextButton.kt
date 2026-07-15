@@ -17,6 +17,7 @@ import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.isSpecified
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastCoerceAtMost
 import androidx.compose.ui.util.lerp
@@ -32,13 +33,28 @@ import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.tanh
 
+/**
+ * Capsule-shaped liquid glass text button for AppBar text actions (e.g. "保存").
+ *
+ * Uses the backdrop system to create a frosted-glass effect with interactive
+ * press animations. Uses CircleShape which acts as a capsule for non-square bounds.
+ *
+ * @param onClick Callback when the button is clicked
+ * @param backdrop The backdrop instance for liquid glass rendering
+ * @param modifier Modifier for the button
+ * @param isInteractive Whether to enable press-drag interactive animations
+ * @param tint Optional color tint applied via drawRect overlay (default: blue 0xFF0088FF)
+ * @param surfaceColor Optional solid surface color drawn on top of backdrop
+ * @param content The text/icon content to display inside the capsule
+ */
 @Composable
-fun LiquidButton(
+fun LiquidTextButton(
     onClick: () -> Unit,
     backdrop: Backdrop,
     modifier: Modifier = Modifier,
+    height: Dp = 48.dp,
     isInteractive: Boolean = true,
-    tint: Color = Color.Unspecified,
+    tint: Color = Color(0xFF0088FF),
     surfaceColor: Color = Color.Unspecified,
     content: @Composable RowScope.() -> Unit
 ) {
@@ -113,9 +129,9 @@ fun LiquidButton(
                     Modifier
                 }
             )
-            .height(48f.dp)
-            .padding(horizontal = 16f.dp),
-        horizontalArrangement = Arrangement.spacedBy(8f.dp, Alignment.CenterHorizontally),
+            .height(height)
+            .padding(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(6f.dp, Alignment.CenterHorizontally),
         verticalAlignment = Alignment.CenterVertically,
         content = content
     )

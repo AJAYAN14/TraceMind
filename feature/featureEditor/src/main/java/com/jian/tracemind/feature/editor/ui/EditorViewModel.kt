@@ -1,159 +1,127 @@
 package com.jian.tracemind.feature.editor.ui
 
+import android.app.Application
+import android.net.Uri
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.graphics.toArgb
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.jian.tracemind.core.domain.model.Diary
 import com.jian.tracemind.core.domain.repository.DiaryRepository
+import com.jian.tracemind.feature.editor.ui.theme.NoteColorPalette
+import com.jian.tracemind.feature.editor.utils.MediaHelper
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
-import android.content.Context
-import android.net.Uri
 import java.util.UUID
 import javax.inject.Inject
-import com.jian.tracemind.feature.editor.utils.MediaHelper
-
-data class EditorUiState(
-    val diaryId: String = "",
-    val folderId: String? = null,
-    val title: String = "",
-    val content: String = "",
-    val createdAt: Long = System.currentTimeMillis(),
-    val mood: String? = null,
-    val weather: String? = null,
-    val tags: List<String> = emptyList(),
-    val images: List<String> = emptyList(),
-    val audioPath: String? = null,
-    val coverImage: String? = null,
-    val isSaving: Boolean = false,
-    val saveSuccess: Boolean = false
-)
 
 @HiltViewModel
 class EditorViewModel @Inject constructor(
+    private val diaryRepository: DiaryRepository,
     private val savedStateHandle: SavedStateHandle,
-    private val diaryRepository: DiaryRepository
+    private val application: Application
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(EditorUiState())
-    val uiState: StateFlow<EditorUiState> = _uiState.asStateFlow()
+    private val _noteTitle = mutableStateOf(
+        NoteTextFieldState(
+            text = savedStateHandle.get<String>("title") ?: "",
+            hint = "标题..."
+        )
+    )
+    val noteTitle: State<NoteTextFieldState> = _noteTitle
+
+    private val _noteContent = mutableStateOf(
+        NoteTextFieldState(
+            text = savedStateHandle.get<String>("content") ?: "",
+            hint = "内容..."
+        )
+    )
+    val noteContent: State<NoteTextFieldState> = _noteContent
+
+    private val _noteColor = mutableIntStateOf(
+        savedStateHandle.get<Int>("color") ?: NoteColorPalette.Light.first().toArgb()
+    )
+    val noteColor: State<Int> = _noteColor
+
+    private val _noteTimestamp = mutableStateOf<Long?>(null)
+    val noteTimestamp: State<Long?> = _noteTimestamp
+
+    private val _eventFlow = MutableSharedFlow<UiEvent>()
+    val eventFlow = _eventFlow.asSharedFlow()
+
+    private var currentDiaryId: String? = null
+    private var folderId: String? = null
+    private var autoSaveJob: Job? = null
+    private var createdAt: Long = System.currentTimeMillis()
 
     init {
         val diaryId = savedStateHandle.get<String>("diaryId")
-        val folderId = savedStateHandle.get<String>("folderId")
+        folderId = savedStateHandle.get<String>("folderId")
         
         if (!diaryId.isNullOrEmpty()) {
-            loadDiary(diaryId)
+            viewModelScope.launch {
+                val diary = diaryRepository.getDiaryById(diaryId)
+                if (diary != null) {
+                    currentDiaryId = diary.id
+                    folderId = diary.folderId
+                    createdAt = diary.createdAt
+                    _noteTimestamp.value = diary.updatedAt
+                    
+                    if (savedStateHandle.get<String>("title") == null) {
+                        _noteTitle.value = noteTitle.value.copy(
+                            text = diary.title,
+                            isHintVisible = false
+                        )
+                        _noteContent.value = _noteContent.value.copy(
+                            text = diary.content,
+                            isHintVisible = false
+                        )
+                    }
+                }
+            }
         } else {
-            _uiState.update { 
-                it.copy(
-                    diaryId = UUID.randomUUID().toString(),
-                    folderId = if (folderId.isNullOrEmpty()) null else folderId,
-                    createdAt = System.currentTimeMillis()
-                ) 
-            }
+            currentDiaryId = UUID.randomUUID().toString()
         }
     }
 
-    private fun loadDiary(id: String) {
-        viewModelScope.launch {
-            val diary = diaryRepository.getDiaryById(id)
-            if (diary != null) {
-                _uiState.update {
-                    it.copy(
-                        diaryId = diary.id,
-                        folderId = diary.folderId,
-                        title = diary.title,
-                        content = diary.content,
-                        createdAt = diary.createdAt,
-                        mood = diary.mood,
-                        weather = diary.weather,
-                        tags = diary.tags,
-                        images = diary.images,
-                        audioPath = diary.audioPath,
-                        coverImage = diary.coverImage
-                    )
-                }
-            }
+    private fun triggerAutoSave() {
+        autoSaveJob?.cancel()
+        autoSaveJob = viewModelScope.launch {
+            delay(1000L)
+            saveNoteInternal()
         }
     }
 
-    fun onTitleChange(title: String) {
-        _uiState.update { it.copy(title = title) }
-    }
-
-    fun onContentChange(content: String) {
-        _uiState.update { it.copy(content = content) }
-    }
-
-    fun onImagesSelected(context: Context, uris: List<Uri>) {
-        viewModelScope.launch {
-            val copiedPaths = uris.mapNotNull { uri ->
-                MediaHelper.copyImageToInternalStorage(context, uri)
-            }
-            if (copiedPaths.isNotEmpty()) {
-                _uiState.update { 
-                    it.copy(
-                        images = it.images + copiedPaths,
-                        coverImage = it.coverImage ?: copiedPaths.first() // Set first image as cover if not set
-                    ) 
-                }
-            }
-        }
-    }
-
-    fun onAudioRecorded(path: String) {
-        _uiState.update { it.copy(audioPath = path) }
-    }
-
-    fun onMoodChange(mood: String?) {
-        _uiState.update { it.copy(mood = mood) }
-    }
-
-    fun onWeatherChange(weather: String?) {
-        _uiState.update { it.copy(weather = weather) }
-    }
-
-    fun onAddTag(tag: String) {
-        val trimmed = tag.trim()
-        if (trimmed.isNotEmpty() && trimmed !in _uiState.value.tags) {
-            _uiState.update { it.copy(tags = it.tags + trimmed) }
-        }
-    }
-
-    fun onRemoveTag(tag: String) {
-        _uiState.update { it.copy(tags = it.tags - tag) }
-    }
-
-    fun saveDiary() {
-        val currentState = _uiState.value
-        // Basic validation: skip saving if both title and content are blank
-        if (currentState.title.isBlank() && currentState.content.isBlank()) {
-            _uiState.update { it.copy(saveSuccess = true) }
-            return
+    private suspend fun saveNoteInternal(): String? {
+        val title = noteTitle.value.text
+        val content = noteContent.value.text
+        
+        if (title.isBlank() && content.isBlank()) {
+            return null
         }
         
-        _uiState.update { it.copy(isSaving = true) }
-        viewModelScope.launch {
-            val isNew = diaryRepository.getDiaryById(currentState.diaryId) == null
-            
+        try {
+            val isNew = diaryRepository.getDiaryById(currentDiaryId!!) == null
             val diary = Diary(
-                id = currentState.diaryId,
-                folderId = currentState.folderId,
-                title = currentState.title.ifBlank { "无标题" },
-                content = currentState.content,
-                createdAt = currentState.createdAt,
+                id = currentDiaryId!!,
+                folderId = folderId,
+                title = title.ifBlank { "无标题" },
+                content = content,
+                createdAt = createdAt,
                 updatedAt = System.currentTimeMillis(),
-                mood = currentState.mood,
-                weather = currentState.weather,
-                tags = currentState.tags,
-                images = currentState.images,
-                audioPath = currentState.audioPath,
-                coverImage = currentState.coverImage
+                mood = null,
+                weather = null,
+                tags = emptyList(),
+                images = emptyList(),
+                audioPath = null,
+                coverImage = null
             )
             
             if (isNew) {
@@ -161,8 +129,98 @@ class EditorViewModel @Inject constructor(
             } else {
                 diaryRepository.updateDiary(diary)
             }
-            
-            _uiState.update { it.copy(isSaving = false, saveSuccess = true) }
+            return currentDiaryId
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return null
         }
+    }
+
+    fun applyDefaultColor(isDarkTheme: Boolean) {
+        if (_noteColor.intValue == NoteColorPalette.Light.first().toArgb()) {
+            _noteColor.intValue = if (isDarkTheme) {
+                NoteColorPalette.Dark.first().toArgb()
+            } else {
+                NoteColorPalette.Light.first().toArgb()
+            }
+        }
+    }
+
+    fun onEvent(event: EditorEvent) {
+        when (event) {
+            is EditorEvent.EnteredTitle -> {
+                _noteTitle.value = noteTitle.value.copy(text = event.value)
+                savedStateHandle["title"] = event.value
+                triggerAutoSave()
+            }
+            is EditorEvent.ChangeTitleFocus -> {
+                _noteTitle.value = noteTitle.value.copy(
+                    isHintVisible = !event.focusState.isFocused && _noteTitle.value.text.isBlank()
+                )
+            }
+            is EditorEvent.EnteredContent -> {
+                _noteContent.value = noteContent.value.copy(text = event.value)
+                savedStateHandle["content"] = event.value
+                triggerAutoSave()
+            }
+            is EditorEvent.ChangeContentFocus -> {
+                _noteContent.value = noteContent.value.copy(
+                    isHintVisible = !event.focusState.isFocused && _noteContent.value.text.isBlank()
+                )
+            }
+            is EditorEvent.ChangeColor -> {
+                _noteColor.intValue = event.color
+                savedStateHandle["color"] = event.color
+            }
+            is EditorEvent.InsertImage -> {
+                viewModelScope.launch {
+                    try {
+                        val uri = Uri.parse(event.uriString)
+                        val localPath = MediaHelper.copyImageToInternalStorage(application, uri)
+                        if (localPath != null) {
+                            val currentText = _noteContent.value.text
+                            val newText = if (currentText.isBlank()) {
+                                "![]($localPath)\n"
+                            } else {
+                                "$currentText\n\n![]($localPath)\n"
+                            }
+                            _noteContent.value = noteContent.value.copy(text = newText)
+                            savedStateHandle["content"] = newText
+                            triggerAutoSave()
+                        } else {
+                            _eventFlow.emit(UiEvent.ShowSnackbar("图片插入失败"))
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        _eventFlow.emit(UiEvent.ShowSnackbar("图片插入失败: ${e.message}"))
+                    }
+                }
+            }
+            is EditorEvent.SaveNote -> {
+                autoSaveJob?.cancel()
+                viewModelScope.launch {
+                    if (noteTitle.value.text.isBlank() && noteContent.value.text.isBlank()) {
+                        _eventFlow.emit(UiEvent.SavedNote)
+                        return@launch
+                    }
+                    val resultId = saveNoteInternal()
+                    if (resultId != null) {
+                        _eventFlow.emit(UiEvent.SavedNote)
+                    } else {
+                        _eventFlow.emit(UiEvent.ShowSnackbar("保存失败"))
+                    }
+                }
+            }
+            is EditorEvent.SetReminder -> {
+                viewModelScope.launch {
+                    _eventFlow.emit(UiEvent.ShowSnackbar("不支持提醒功能"))
+                }
+            }
+        }
+    }
+
+    sealed class UiEvent {
+        data class ShowSnackbar(val message: String) : UiEvent()
+        object SavedNote : UiEvent()
     }
 }

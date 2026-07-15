@@ -15,6 +15,7 @@ sealed class AppRoute(val route: String) {
             return "folder?folderId=$fId"
         }
     }
+    object Search : AppRoute("search")
     object Insights : AppRoute("insights")
     object Profile : AppRoute("profile")
 }

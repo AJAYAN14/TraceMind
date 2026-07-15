@@ -1,9 +1,0 @@
-com.jian.tracemind.core.ui.coreUi-pngs-0 E:\Android\TraceMind\core\coreUi\build\generated\res\pngs\debug
-com.jian.tracemind.core.ui.coreUi-updated_navigation_xml-1 E:\Android\TraceMind\core\coreUi\build\generated\updated_navigation_xml\debug
-com.jian.tracemind.core.ui.coreUi-mergeDebugResources-2 E:\Android\TraceMind\core\coreUi\build\intermediates\incremental\debug\mergeDebugResources\merged.dir
-com.jian.tracemind.core.ui.coreUi-mergeDebugResources-3 E:\Android\TraceMind\core\coreUi\build\intermediates\incremental\debug\mergeDebugResources\stripped.dir
-com.jian.tracemind.core.ui.coreUi-debug-4 E:\Android\TraceMind\core\coreUi\build\intermediates\merged_res\debug\mergeDebugResources
-com.jian.tracemind.core.ui.coreUi-debug-5 E:\Android\TraceMind\core\coreUi\build\intermediates\packaged_res\debug\packageDebugResources
-com.jian.tracemind.core.ui.coreUi-debug-6 E:\Android\TraceMind\core\coreUi\src\debug\res
-com.jian.tracemind.core.ui.coreUi-main-7 E:\Android\TraceMind\core\coreUi\src\main\res
-gradleHome-0 D:\Android\.gradle

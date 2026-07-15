@@ -2,11 +2,8 @@ package com.jian.tracemind.core.ui.components
 
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -17,6 +14,7 @@ import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.isSpecified
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastCoerceAtMost
 import androidx.compose.ui.util.lerp
@@ -32,15 +30,31 @@ import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.tanh
 
+/**
+ * Circular liquid glass icon button for AppBar navigation and actions.
+ *
+ * Uses the backdrop system to create a frosted-glass effect with interactive
+ * press animations (stretch deformation + highlight following the finger).
+ *
+ * @param onClick Callback when the button is clicked
+ * @param backdrop The backdrop instance for liquid glass rendering
+ * @param modifier Modifier for the button
+ * @param size The diameter of the circular button (default 40dp)
+ * @param isInteractive Whether to enable press-drag interactive animations
+ * @param tint Optional color tint applied via drawRect overlay (default: blue 0xFF0088FF)
+ * @param surfaceColor Optional solid surface color drawn on top of backdrop
+ * @param content The icon content to display inside the circle
+ */
 @Composable
-fun LiquidButton(
+fun LiquidIconButton(
     onClick: () -> Unit,
     backdrop: Backdrop,
     modifier: Modifier = Modifier,
+    size: Dp = 48f.dp,
     isInteractive: Boolean = true,
-    tint: Color = Color.Unspecified,
+    tint: Color = Color(0xFF0088FF),
     surfaceColor: Color = Color.Unspecified,
-    content: @Composable RowScope.() -> Unit
+    content: @Composable () -> Unit
 ) {
     val animationScope = rememberCoroutineScope()
 
@@ -50,7 +64,7 @@ fun LiquidButton(
         )
     }
 
-    Row(
+    Box(
         modifier
             .drawBackdrop(
                 backdrop = backdrop,
@@ -62,27 +76,27 @@ fun LiquidButton(
                 },
                 layerBlock = if (isInteractive) {
                     {
-                        val width = size.width
-                        val height = size.height
+                        val width = this.size.width
+                        val height = this.size.height
 
                         val progress = interactiveHighlight.pressProgress
-                        val scale = lerp(1f, 1f + 4f.dp.toPx() / size.height, progress)
+                        val scale = lerp(1f, 1f + 4f.dp.toPx() / this.size.height, progress)
 
-                        val maxOffset = size.minDimension
+                        val maxOffset = this.size.minDimension
                         val initialDerivative = 0.05f
                         val offset = interactiveHighlight.offset
                         translationX = maxOffset * tanh(initialDerivative * offset.x / maxOffset)
                         translationY = maxOffset * tanh(initialDerivative * offset.y / maxOffset)
 
-                        val maxDragScale = 4f.dp.toPx() / size.height
+                        val maxDragScale = 4f.dp.toPx() / this.size.height
                         val offsetAngle = atan2(offset.y, offset.x)
                         scaleX =
                             scale +
-                                    maxDragScale * abs(cos(offsetAngle) * offset.x / size.maxDimension) *
+                                    maxDragScale * abs(cos(offsetAngle) * offset.x / this.size.maxDimension) *
                                     (width / height).fastCoerceAtMost(1f)
                         scaleY =
                             scale +
-                                    maxDragScale * abs(sin(offsetAngle) * offset.y / size.maxDimension) *
+                                    maxDragScale * abs(sin(offsetAngle) * offset.y / this.size.maxDimension) *
                                     (height / width).fastCoerceAtMost(1f)
                     }
                 } else {
@@ -113,10 +127,8 @@ fun LiquidButton(
                     Modifier
                 }
             )
-            .height(48f.dp)
-            .padding(horizontal = 16f.dp),
-        horizontalArrangement = Arrangement.spacedBy(8f.dp, Alignment.CenterHorizontally),
-        verticalAlignment = Alignment.CenterVertically,
-        content = content
+            .size(size),
+        contentAlignment = Alignment.Center,
+        content = { content() }
     )
 }

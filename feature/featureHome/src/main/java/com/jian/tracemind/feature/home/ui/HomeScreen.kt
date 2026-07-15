@@ -24,7 +24,6 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
@@ -38,22 +37,34 @@ import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.LottieConstants
+import com.airbnb.lottie.compose.animateLottieCompositionAsState
+import com.airbnb.lottie.compose.rememberLottieComposition
+import com.jian.tracemind.feature.home.R
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.jian.tracemind.core.ui.components.LiquidAppBar
+import com.jian.tracemind.core.ui.components.LiquidIconButton
 import com.jian.tracemind.core.ui.components.SectionLabel
 import com.jian.tracemind.feature.home.ui.components.FolderCard
-import com.jian.tracemind.feature.home.ui.components.MemoryCard
+import com.jian.tracemind.core.ui.components.MemoryCard
 import com.jian.tracemind.feature.home.ui.components.OnThisDayCard
+import com.kyant.backdrop.backdrops.LayerBackdrop
+import com.kyant.backdrop.backdrops.layerBackdrop
 
 @Composable
 fun HomeScreen(
     innerPadding: PaddingValues,
+    backdrop: LayerBackdrop,
     onAddClick: () -> Unit = {},
     onDiaryClick: (String) -> Unit = {},
     onFolderClick: (String) -> Unit = {},
+    onSearchClick: () -> Unit = {},
     viewModel: HomeViewModel = hiltViewModel(),
     modifier: Modifier = Modifier
 ) {
@@ -168,19 +179,98 @@ fun HomeScreen(
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
             Spacer(modifier = Modifier.height(innerPadding.calculateTopPadding()))
-            HomeTopBar()
+            LiquidAppBar(
+                navigationIcon = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(
+                            modifier = Modifier
+                                .size(36.dp)
+                                .clip(CircleShape)
+                                .background(Color(0xFF1A1C1E)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "A",
+                                color = Color.White,
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column {
+                            Text(
+                                text = "早上好",
+                                color = Color(0xFF9CA3AF),
+                                fontSize = 10.sp
+                            )
+                            Text(
+                                text = "TraceMind",
+                                color = Color(0xFF1A1C1E),
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                },
+                actions = {
+                    LiquidIconButton(
+                        onClick = onSearchClick,
+                        backdrop = backdrop
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Search,
+                            contentDescription = "Search",
+                            tint = Color.White,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                },
+                modifier = Modifier.padding(vertical = 4.dp)
+            )
             
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(
-                    start = 20.dp, 
-                    end = 20.dp, 
-                    top = 8.dp, 
-                    bottom = innerPadding.calculateBottomPadding() + 80.dp
-                ),
-                verticalArrangement = Arrangement.spacedBy(20.dp)
-            ) {
-                if (uiState.onThisDayDiaries.isNotEmpty()) {
+            val isEmpty = uiState.onThisDayDiaries.isEmpty() && uiState.folders.isEmpty() && uiState.recentMemories.isEmpty()
+            
+            Box(Modifier.weight(1f).layerBackdrop(backdrop)) {
+                if (isEmpty) {
+                Box(
+                    modifier = Modifier.fillMaxSize().padding(bottom = 80.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.ghost_empty_state))
+                        val progress by animateLottieCompositionAsState(
+                            composition,
+                            iterations = LottieConstants.IterateForever
+                        )
+                        LottieAnimation(
+                            composition = composition,
+                            progress = { progress },
+                            modifier = Modifier.size(200.dp)
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = "没有记录，一片空白~",
+                            color = Color(0xFF6B7280),
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(
+                        start = 20.dp, 
+                        end = 20.dp, 
+                        top = 8.dp, 
+                        bottom = innerPadding.calculateBottomPadding() + 80.dp
+                    ),
+                    verticalArrangement = Arrangement.spacedBy(20.dp)
+                ) {
+                    if (uiState.onThisDayDiaries.isNotEmpty()) {
                     item {
                         Column {
                             SectionLabel("往日今天")
@@ -194,149 +284,90 @@ fun HomeScreen(
                     }
                 }
 
-                item {
-                    Column {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            SectionLabel("我的文件夹", modifier = Modifier.padding(bottom = 0.dp))
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                IconButton(
-                                    onClick = { showCreateFolderDialog = true },
-                                    modifier = Modifier.size(24.dp).padding(end = 4.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Add,
-                                        contentDescription = "Create Folder",
-                                        tint = Color(0xFF5552E4)
+                if (uiState.folders.isNotEmpty()) {
+                    item {
+                        Column {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                SectionLabel("我的文件夹", modifier = Modifier.padding(bottom = 0.dp))
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(
+                                        text = "查看全部",
+                                        color = Color(0xFF5552E4),
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                        modifier = Modifier.clickable { onFolderClick("") }
                                     )
                                 }
-                                Text(
-                                    text = "查看全部",
-                                    color = Color(0xFF5552E4),
-                                    fontSize = 11.sp,
-                                    fontWeight = FontWeight.SemiBold,
-                                    modifier = Modifier.clickable { onFolderClick("") }
-                                )
                             }
-                        }
-                        Spacer(modifier = Modifier.height(10.dp))
-                        LazyRow(
-                            horizontalArrangement = Arrangement.spacedBy(10.dp)
-                        ) {
-                            items(uiState.folders) { model ->
-                                FolderCard(
-                                    model = model,
-                                    onClick = { onFolderClick(model.folder.id) },
-                                    onRenameClick = {
-                                        renameFolderId = model.folder.id
-                                        renameFolderName = model.folder.name
-                                        showRenameDialog = true
-                                    },
-                                    onDeleteClick = {
-                                        deleteFolderId = model.folder.id
-                                        deleteFolderName = model.folder.name
-                                        showDeleteDialog = true
-                                    }
-                                )
+                            Spacer(modifier = Modifier.height(10.dp))
+                            LazyRow(
+                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                items(uiState.folders) { model ->
+                                    FolderCard(
+                                        model = model,
+                                        onClick = { onFolderClick(model.folder.id) },
+                                        onRenameClick = {
+                                            renameFolderId = model.folder.id
+                                            renameFolderName = model.folder.name
+                                            showRenameDialog = true
+                                        },
+                                        onDeleteClick = {
+                                            deleteFolderId = model.folder.id
+                                            deleteFolderName = model.folder.name
+                                            showDeleteDialog = true
+                                        }
+                                    )
+                                }
                             }
                         }
                     }
                 }
 
-                item {
-                    Column {
-                        SectionLabel("最近的记忆")
-                        Spacer(modifier = Modifier.height(2.dp))
-                        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                            uiState.recentMemories.forEach { memory ->
-                                MemoryCard(
-                                    diary = memory,
-                                    modifier = Modifier.clickable { onDiaryClick(memory.id) }
-                                )
+                if (uiState.recentMemories.isNotEmpty()) {
+                    item {
+                        Column {
+                            SectionLabel("最近的记忆")
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                                uiState.recentMemories.forEach { memory ->
+                                    MemoryCard(
+                                        diary = memory,
+                                        modifier = Modifier.clickable { onDiaryClick(memory.id) }
+                                    )
+                                }
                             }
                         }
                     }
                 }
+                }
+            }
             }
         }
 
-        FloatingActionButton(
+        LiquidIconButton(
             onClick = onAddClick,
+            backdrop = backdrop,
+            size = 56.dp,
+            tint = Color(0xFF00C4B5),
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(
-                    bottom = innerPadding.calculateBottomPadding() + 20.dp,
+                    bottom = innerPadding.calculateBottomPadding(),
                     end = 20.dp
-                ),
-            containerColor = Color(0xFF1A1C1E),
-            contentColor = Color.White,
-            shape = RoundedCornerShape(16.dp)
+                )
         ) {
             Icon(
                 imageVector = Icons.Default.Add,
                 contentDescription = "Add",
-                modifier = Modifier.size(24.dp)
+                tint = Color.White,
+                modifier = Modifier.size(28.dp)
             )
         }
     }
 }
 
-@Composable
-fun HomeTopBar() {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 12.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(
-                modifier = Modifier
-                    .size(36.dp)
-                    .clip(CircleShape)
-                    .background(Color(0xFF1A1C1E)),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "A",
-                    color = Color.White,
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-            Spacer(modifier = Modifier.width(12.dp))
-            Column {
-                Text(
-                    text = "早上好",
-                    color = Color(0xFF9CA3AF),
-                    fontSize = 10.sp
-                )
-                Text(
-                    text = "TraceMind",
-                    color = Color(0xFF1A1C1E),
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-        }
-        
-        IconButton(
-            onClick = { /* TODO */ },
-            modifier = Modifier
-                .size(36.dp)
-                .clip(RoundedCornerShape(12.dp))
-                .background(Color.White)
-        ) {
-            Icon(
-                imageVector = Icons.Default.Search,
-                contentDescription = "Search",
-                tint = Color(0xFF1A1C1E),
-                modifier = Modifier.size(17.dp)
-            )
-        }
-    }
-}

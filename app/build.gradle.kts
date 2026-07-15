@@ -69,6 +69,7 @@ dependencies {
     implementation(project(":feature:featureFolder"))
     implementation(project(":feature:featureEditor"))
     implementation(project(":feature:featureProfile"))
+    implementation(project(":feature:featureSearch"))
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.activity.compose)

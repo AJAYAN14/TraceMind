@@ -1,1 +1,0 @@
--keep,allowobfuscation,allowshrinking class com.jian.tracemind.feature.folder.ui.FolderViewModel

@@ -1,9 +1,0 @@
-com.jian.tracemind.feature.insights.featureInsights-pngs-0 E:\Android\TraceMind\feature\featureInsights\build\generated\res\pngs\debug
-com.jian.tracemind.feature.insights.featureInsights-updated_navigation_xml-1 E:\Android\TraceMind\feature\featureInsights\build\generated\updated_navigation_xml\debug
-com.jian.tracemind.feature.insights.featureInsights-mergeDebugResources-2 E:\Android\TraceMind\feature\featureInsights\build\intermediates\incremental\debug\mergeDebugResources\merged.dir
-com.jian.tracemind.feature.insights.featureInsights-mergeDebugResources-3 E:\Android\TraceMind\feature\featureInsights\build\intermediates\incremental\debug\mergeDebugResources\stripped.dir
-com.jian.tracemind.feature.insights.featureInsights-debug-4 E:\Android\TraceMind\feature\featureInsights\build\intermediates\merged_res\debug\mergeDebugResources
-com.jian.tracemind.feature.insights.featureInsights-debug-5 E:\Android\TraceMind\feature\featureInsights\build\intermediates\packaged_res\debug\packageDebugResources
-com.jian.tracemind.feature.insights.featureInsights-debug-6 E:\Android\TraceMind\feature\featureInsights\src\debug\res
-com.jian.tracemind.feature.insights.featureInsights-main-7 E:\Android\TraceMind\feature\featureInsights\src\main\res
-gradleHome-0 D:\Android\.gradle
