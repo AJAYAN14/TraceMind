@@ -25,17 +25,18 @@ import com.jian.tracemind.core.ui.components.SectionLabel
 import com.jian.tracemind.feature.insights.ui.components.HeatmapCard
 import com.kyant.backdrop.backdrops.LayerBackdrop
 import com.kyant.backdrop.backdrops.layerBackdrop
+import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import com.jian.tracemind.feature.insights.ui.components.MoodTrendsCard
 import com.jian.tracemind.feature.insights.ui.components.TagCloudCard
 
 @Composable
 fun InsightsScreen(
     innerPadding: PaddingValues,
-    backdrop: LayerBackdrop,
     modifier: Modifier = Modifier,
     viewModel: InsightsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val localBackdrop = rememberLayerBackdrop()
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -64,7 +65,7 @@ fun InsightsScreen(
                     val date = java.text.SimpleDateFormat("yyyy年M月", java.util.Locale.getDefault()).format(java.util.Date())
                     LiquidTextButton(
                         onClick = { /* TODO: date picker */ },
-                        backdrop = backdrop
+                        backdrop = localBackdrop
                     ) {
                         Text(
                             text = date,
@@ -76,7 +77,7 @@ fun InsightsScreen(
                 }
             )
             
-            Box(Modifier.weight(1f).layerBackdrop(backdrop)) {
+            Box(Modifier.weight(1f).background(Color(0xFFF8F9FA)).layerBackdrop(localBackdrop)) {
                 LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(

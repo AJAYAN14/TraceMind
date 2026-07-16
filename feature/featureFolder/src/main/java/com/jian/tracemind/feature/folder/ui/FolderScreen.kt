@@ -37,8 +37,7 @@ fun FolderScreen(
     modifier: Modifier = Modifier,
     innerPadding: PaddingValues = PaddingValues(),
     viewModel: FolderViewModel = hiltViewModel(),
-    onNavigateBack: () -> Unit = {},
-    onNavigateToEditor: (String?) -> Unit = {}
+    onNavigateBack: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var isSearchExpanded by remember { mutableStateOf(false) }
@@ -79,85 +78,83 @@ fun FolderScreen(
         )
     }
 
-    Scaffold(
-        modifier = modifier.fillMaxSize(),
-        containerColor = Color(0xFFF8F9FA),
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { onNavigateToEditor(uiState.folderId) },
-                containerColor = Color(0xFF1A1C1E),
-                contentColor = Color.White
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "Add Diary")
-            }
-        }
-    ) { scaffoldPadding ->
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .background(Color(0xFFF8F9FA))
+    ) {
+        val backdrop = com.kyant.backdrop.backdrops.rememberLayerBackdrop()
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(scaffoldPadding)
         ) {
             // App Bar
             Spacer(modifier = Modifier.height(innerPadding.calculateTopPadding()))
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 20.dp, vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                IconButton(onClick = onNavigateBack, modifier = Modifier.size(36.dp)) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back",
-                        tint = Color(0xFF1A1C1E),
-                        modifier = Modifier.size(20.dp)
-                    )
+            com.jian.tracemind.core.ui.components.LiquidAppBar(
+                centerTitle = !isSearchExpanded,
+                navigationIcon = {
+                    com.jian.tracemind.core.ui.components.LiquidIconButton(
+                        onClick = onNavigateBack,
+                        backdrop = backdrop,
+                        surfaceColor = Color(0xFF00C4B5),
+                        tint = Color(0xFF00C4B5)
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back",
+                            tint = Color.White,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                },
+                title = {
+                    if (isSearchExpanded) {
+                        TextField(
+                            value = uiState.searchQuery,
+                            onValueChange = { viewModel.onSearchQueryChanged(it) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(48.dp),
+                            placeholder = { Text("搜索日记...", fontSize = 14.sp) },
+                            singleLine = true,
+                            colors = TextFieldDefaults.colors(
+                                focusedContainerColor = Color.White,
+                                unfocusedContainerColor = Color.White,
+                                focusedIndicatorColor = Color.Transparent,
+                                unfocusedIndicatorColor = Color.Transparent
+                            ),
+                            shape = RoundedCornerShape(24.dp)
+                        )
+                    } else {
+                        val title = uiState.currentFolder?.name ?: "全部日记"
+                        Text(
+                            text = title,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF1A1C1E),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                        )
+                    }
+                },
+                actions = {
+                    com.jian.tracemind.core.ui.components.LiquidIconButton(
+                        onClick = { isSearchExpanded = !isSearchExpanded },
+                        backdrop = backdrop,
+                        surfaceColor = Color(0xFF00C4B5),
+                        tint = Color(0xFF00C4B5)
+                    ) {
+                        Icon(
+                            imageVector = if (isSearchExpanded) Icons.Default.MoreVert else Icons.Default.Search,
+                            contentDescription = "Search",
+                            tint = Color.White,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
                 }
-                
-                if (isSearchExpanded) {
-                    TextField(
-                        value = uiState.searchQuery,
-                        onValueChange = { viewModel.onSearchQueryChanged(it) },
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(horizontal = 8.dp)
-                            .height(48.dp),
-                        placeholder = { Text("搜索日记...", fontSize = 14.sp) },
-                        singleLine = true,
-                        colors = TextFieldDefaults.colors(
-                            focusedContainerColor = Color.White,
-                            unfocusedContainerColor = Color.White,
-                            focusedIndicatorColor = Color.Transparent,
-                            unfocusedIndicatorColor = Color.Transparent
-                        ),
-                        shape = RoundedCornerShape(24.dp)
-                    )
-                } else {
-                    val title = uiState.currentFolder?.name ?: "全部日记"
-                    Text(
-                        text = title,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF1A1C1E),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(horizontal = 8.dp),
-                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                    )
-                }
-
-                IconButton(onClick = { isSearchExpanded = !isSearchExpanded }, modifier = Modifier.size(36.dp)) {
-                    Icon(
-                        imageVector = if (isSearchExpanded) Icons.Default.MoreVert else Icons.Default.Search,
-                        contentDescription = "Search",
-                        tint = Color(0xFF1A1C1E),
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
-            }
+            )
 
             // Filter chips
             val chips = listOf("全部", "图文", "纯文本")

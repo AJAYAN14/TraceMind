@@ -56,12 +56,11 @@ import com.jian.tracemind.core.ui.components.MemoryCard
 import com.jian.tracemind.feature.home.ui.components.OnThisDayCard
 import com.kyant.backdrop.backdrops.LayerBackdrop
 import com.kyant.backdrop.backdrops.layerBackdrop
+import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 
 @Composable
 fun HomeScreen(
     innerPadding: PaddingValues,
-    backdrop: LayerBackdrop,
-    onAddClick: () -> Unit = {},
     onDiaryClick: (String) -> Unit = {},
     onFolderClick: (String) -> Unit = {},
     onSearchClick: () -> Unit = {},
@@ -69,8 +68,7 @@ fun HomeScreen(
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    var showCreateFolderDialog by remember { mutableStateOf(false) }
-    var folderName by remember { mutableStateOf("") }
+    val localBackdrop = rememberLayerBackdrop()
     
     var showRenameDialog by remember { mutableStateOf(false) }
     var renameFolderId by remember { mutableStateOf("") }
@@ -79,42 +77,6 @@ fun HomeScreen(
     var showDeleteDialog by remember { mutableStateOf(false) }
     var deleteFolderId by remember { mutableStateOf("") }
     var deleteFolderName by remember { mutableStateOf("") }
-
-    if (showCreateFolderDialog) {
-        AlertDialog(
-            onDismissRequest = { showCreateFolderDialog = false },
-            title = { Text("新建文件夹", fontSize = 18.sp, fontWeight = FontWeight.Bold) },
-            text = {
-                TextField(
-                    value = folderName,
-                    onValueChange = { folderName = it },
-                    placeholder = { Text("文件夹名称") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            },
-            confirmButton = {
-                TextButton(onClick = {
-                    if (folderName.isNotBlank()) {
-                        viewModel.createFolder(folderName)
-                        showCreateFolderDialog = false
-                        folderName = ""
-                    }
-                }) {
-                    Text("创建", color = Color(0xFF1A1C1E))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { 
-                    showCreateFolderDialog = false 
-                    folderName = ""
-                }) {
-                    Text("取消", color = Color(0xFF9CA3AF))
-                }
-            },
-            containerColor = Color.White
-        )
-    }
 
     if (showRenameDialog) {
         AlertDialog(
@@ -215,7 +177,7 @@ fun HomeScreen(
                 actions = {
                     LiquidIconButton(
                         onClick = onSearchClick,
-                        backdrop = backdrop
+                        backdrop = localBackdrop
                     ) {
                         Icon(
                             imageVector = Icons.Default.Search,
@@ -230,7 +192,7 @@ fun HomeScreen(
             
             val isEmpty = uiState.onThisDayDiaries.isEmpty() && uiState.folders.isEmpty() && uiState.recentMemories.isEmpty()
             
-            Box(Modifier.weight(1f).layerBackdrop(backdrop)) {
+            Box(Modifier.weight(1f).background(Color(0xFFF8F9FA)).layerBackdrop(localBackdrop)) {
                 if (isEmpty) {
                 Box(
                     modifier = Modifier.fillMaxSize().padding(bottom = 80.dp),
@@ -347,26 +309,6 @@ fun HomeScreen(
                 }
             }
             }
-        }
-
-        LiquidIconButton(
-            onClick = onAddClick,
-            backdrop = backdrop,
-            size = 56.dp,
-            tint = Color(0xFF00C4B5),
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(
-                    bottom = innerPadding.calculateBottomPadding(),
-                    end = 20.dp
-                )
-        ) {
-            Icon(
-                imageVector = Icons.Default.Add,
-                contentDescription = "Add",
-                tint = Color.White,
-                modifier = Modifier.size(28.dp)
-            )
         }
     }
 }

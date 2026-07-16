@@ -5,15 +5,28 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AutoGraph
-import androidx.compose.material.icons.filled.Folder
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.outlined.AutoGraph
+import androidx.compose.material.icons.outlined.Folder
+import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.rounded.AutoGraph
+import androidx.compose.material.icons.rounded.Folder
+import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material3.Icon
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorResource
+import com.jian.tracemind.R
+import androidx.compose.foundation.layout.Box
+import androidx.compose.ui.draw.paint
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
+import androidx.compose.ui.Alignment
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -68,53 +81,74 @@ fun MainBottomBar(
             }
         }
 
-        LiquidBottomTabs(
-            selectedTabIndex = { selectedTabIndex },
-            onTabSelected = { index ->
-                val route = bottomTabs[index].route
-                if (route != navState.value?.destination?.route) {
-                    navController.navigate(route) {
-                        popUpTo(navController.graph.startDestinationId) { saveState = true }
-                        launchSingleTop = true
-                        restoreState = true
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .navigationBarsPadding()
+                .padding(start = 24.dp, end = 20.dp, top = 32.dp, bottom = 32.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(modifier = Modifier.weight(1f)) {
+                LiquidBottomTabs(
+                    selectedTabIndex = { selectedTabIndex },
+                    onTabSelected = { index ->
+                        val route = bottomTabs[index].route
+                        if (route != navState.value?.destination?.route) {
+                            navController.navigate(route) {
+                                popUpTo(navController.graph.startDestinationId) { saveState = true }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        }
+                        if (selectedTabIndex != index) {
+                            selectedTabIndex = index
+                        }
+                    },
+                    backdrop = backdrop,
+                    tabsCount = 4
+                ) {
+                    val contentColor = if (isSystemInDarkTheme()) Color.White else Color.Black
+                    val iconColorFilter = androidx.compose.ui.graphics.ColorFilter.tint(contentColor)
+                    val labels = listOf("首页", "文件夹", "洞察", "个人")
+                    val selectedIcons = listOf(
+                        ImageVector.vectorResource(id = R.drawable.ic_home_rounded_filled),
+                        Icons.Rounded.Folder,
+                        Icons.Rounded.AutoGraph,
+                        Icons.Rounded.Person
+                    )
+                    val unselectedIcons = listOf(
+                        ImageVector.vectorResource(id = R.drawable.ic_home_rounded_outlined),
+                        Icons.Outlined.Folder,
+                        Icons.Outlined.AutoGraph,
+                        Icons.Outlined.Person
+                    )
+
+                    repeat(4) { index ->
+                        LiquidBottomTab(onClick = { 
+                            selectedTabIndex = index
+                        }) {
+                            val icon = if (selectedTabIndex == index) selectedIcons[index] else unselectedIcons[index]
+                            val label = labels[index]
+                            val painter = androidx.compose.ui.graphics.vector.rememberVectorPainter(icon)
+                            
+                            Box(
+                                Modifier
+                                    .size(28.dp)
+                                    .paint(painter, colorFilter = iconColorFilter)
+                            )
+                            BasicText(
+                                text = label,
+                                style = TextStyle(color = contentColor, fontSize = 12.sp)
+                            )
+                        }
                     }
                 }
-                if (selectedTabIndex != index) {
-                    selectedTabIndex = index
-                }
-            },
-            backdrop = backdrop,
-            tabsCount = 4,
-            modifier = Modifier
-                .padding(horizontal = 36.dp, vertical = 24.dp)
-        ) {
-            val contentColor = if (isSystemInDarkTheme()) Color.White else Color.Black
-            val labels = listOf("首页", "文件夹", "洞察", "个人")
-            val icons = listOf(
-                Icons.Default.Home,
-                Icons.Default.Folder,
-                Icons.Default.AutoGraph,
-                Icons.Default.Person
-            )
-
-            repeat(4) { index ->
-                LiquidBottomTab(onClick = { 
-                    selectedTabIndex = index
-                }) {
-                    val icon = icons[index]
-                    val label = labels[index]
-                    Icon(
-                        imageVector = icon,
-                        contentDescription = label,
-                        tint = contentColor,
-                        modifier = Modifier.size(24.dp)
-                    )
-                    BasicText(
-                        text = label,
-                        style = TextStyle(color = contentColor, fontSize = 10.sp)
-                    )
-                }
             }
+            Spacer(modifier = Modifier.width(16.dp))
+            GlobalAddButton(
+                backdrop = backdrop,
+                onNavigateToEditor = { navController.navigate(AppRoute.Editor.createRoute()) }
+            )
         }
     }
 }

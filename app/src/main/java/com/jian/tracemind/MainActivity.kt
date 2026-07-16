@@ -11,9 +11,12 @@ import androidx.compose.material.icons.filled.AutoGraph
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -54,6 +57,12 @@ class MainActivity : ComponentActivity() {
 
                 val backdrop = rememberLayerBackdrop()
                 
+                var showFluidBackground by remember { androidx.compose.runtime.mutableStateOf(true) }
+                androidx.compose.runtime.LaunchedEffect(Unit) {
+                    kotlinx.coroutines.delay(5000)
+                    showFluidBackground = false
+                }
+                
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
                     bottomBar = {
@@ -64,7 +73,11 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                 ) { innerPadding ->
-                    Box(modifier = Modifier.fillMaxSize()) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .layerBackdrop(backdrop)
+                    ) {
                         NavHost(
                             navController = navController,
                             startDestination = AppRoute.Home.route,
@@ -77,8 +90,6 @@ class MainActivity : ComponentActivity() {
                             composable(AppRoute.Home.route) {
                                 HomeScreen(
                                     innerPadding = innerPadding,
-                                    backdrop = backdrop,
-                                    onAddClick = { navController.navigate(AppRoute.Editor.createRoute()) },
                                     onDiaryClick = { id -> navController.navigate(AppRoute.Editor.createRoute(diaryId = id)) },
                                     onFolderClick = { id -> navController.navigate(AppRoute.Folder.createRoute(folderId = id)) },
                                     onSearchClick = { navController.navigate(AppRoute.Search.route) },
@@ -97,12 +108,11 @@ class MainActivity : ComponentActivity() {
                                 FolderScreen(
                                     innerPadding = innerPadding, 
                                     onNavigateBack = { navController.popBackStack() },
-                                    onNavigateToEditor = { fId -> navController.navigate(AppRoute.Editor.createRoute(folderId = fId)) },
                                     modifier = Modifier.fillMaxSize()
                                 )
                             }
                             composable(AppRoute.Insights.route) {
-                                InsightsScreen(innerPadding = innerPadding, backdrop = backdrop, modifier = Modifier.fillMaxSize())
+                                InsightsScreen(innerPadding = innerPadding, modifier = Modifier.fillMaxSize())
                             }
                             composable(AppRoute.Search.route) {
                                 SearchScreen(
@@ -132,11 +142,30 @@ class MainActivity : ComponentActivity() {
                             ) {
                                 EditorScreen(
                                     onBack = { navController.popBackStack() },
-                                    backdrop = backdrop,
                                     modifier = Modifier.fillMaxSize(),
                                     innerPadding = innerPadding
                                 )
                             }
+                        }
+
+                        val isMainScreen = currentRoute in listOf(
+                            AppRoute.Home.route,
+                            AppRoute.Folder.route,
+                            AppRoute.Insights.route,
+                            AppRoute.Profile.route
+                        )
+
+                        androidx.compose.animation.AnimatedVisibility(
+                            visible = isMainScreen && showFluidBackground,
+                            modifier = Modifier.align(androidx.compose.ui.Alignment.BottomCenter),
+                            enter = androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(500)),
+                            exit = androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(500))
+                        ) {
+                            com.jian.tracemind.core.ui.components.FluidBottomBackground(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(200.dp)
+                            )
                         }
                     }
                 }

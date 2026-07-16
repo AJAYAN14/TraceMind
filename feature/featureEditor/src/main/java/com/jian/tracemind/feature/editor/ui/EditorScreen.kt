@@ -46,6 +46,7 @@ import com.jian.tracemind.feature.editor.ui.components.markdown.MarkdownField
 import com.jian.tracemind.feature.editor.ui.components.markdown.MarkdownFormatter
 import com.jian.tracemind.feature.editor.ui.theme.NoteColorPalette
 import com.kyant.backdrop.backdrops.LayerBackdrop
+import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -56,13 +57,13 @@ import java.util.Locale
 @Composable
 fun EditorScreen(
     onBack: () -> Unit,
-    backdrop: LayerBackdrop,
     modifier: Modifier = Modifier,
     innerPadding: PaddingValues = PaddingValues(),
     viewModel: EditorViewModel = hiltViewModel()
 ) {
     val titleState = viewModel.noteTitle.value
     val contentState = viewModel.noteContent.value
+    val localBackdrop = rememberLayerBackdrop()
     val context = LocalContext.current
     val haptic = LocalHapticFeedback.current
     val snackbarHostState = remember { SnackbarHostState() }
@@ -317,7 +318,7 @@ fun EditorScreen(
                             dateStr = dateStr,
                             onBack = { viewModel.onEvent(EditorEvent.SaveNote) },
                             onSave = { viewModel.onEvent(EditorEvent.SaveNote) },
-                            backdrop = backdrop
+                            backdrop = localBackdrop
                         )
                     }
                     
