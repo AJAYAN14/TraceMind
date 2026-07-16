@@ -36,49 +36,53 @@ fun FolderCard(
     modifier: Modifier = Modifier
 ) {
     var expanded by remember { mutableStateOf(false) }
-    Column(
-        modifier = modifier
-            .width(84.dp)
-            .clip(RoundedCornerShape(12.dp))
-            .background(Color.White)
-            .combinedClickable(
-                onClick = onClick,
-                onLongClick = { expanded = true }
-            )
-            .padding(horizontal = 14.dp, vertical = 12.dp)
+    androidx.compose.material3.Surface(
+        shape = RoundedCornerShape(24.dp),
+        color = Color.White,
+        shadowElevation = 2.dp,
+        modifier = modifier.width(84.dp)
     ) {
-        Text(text = "📁", fontSize = 20.sp) // Default icon for now
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = model.folder.name,
-            color = Color(0xFF1A1C1E),
-            fontSize = 12.sp,
-            fontWeight = FontWeight.SemiBold
-        )
-        Text(
-            text = "${model.diaryCount} 篇",
-            color = Color(0xFF9CA3AF),
-            fontSize = 10.sp
-        )
-        
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false }
+        Column(
+            modifier = Modifier
+                .combinedClickable(
+                    onClick = onClick,
+                    onLongClick = { expanded = true }
+                )
+                .padding(horizontal = 14.dp, vertical = 12.dp)
         ) {
-            DropdownMenuItem(
-                text = { Text("重命名") },
-                onClick = { 
-                    expanded = false
-                    onRenameClick()
-                }
+            Text(text = "📁", fontSize = 20.sp) // Default icon for now
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                text = model.folder.name,
+                color = Color(0xFF1A1C1E),
+                fontSize = 12.sp,
+                fontWeight = FontWeight.SemiBold
             )
-            DropdownMenuItem(
-                text = { Text("删除", color = Color.Red) },
-                onClick = { 
-                    expanded = false
-                    onDeleteClick()
-                }
+            Text(
+                text = "${model.diaryCount} 篇",
+                color = Color(0xFF9CA3AF),
+                fontSize = 10.sp
             )
+            
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ) {
+                DropdownMenuItem(
+                    text = { Text("重命名") },
+                    onClick = { 
+                        expanded = false
+                        onRenameClick()
+                    }
+                )
+                DropdownMenuItem(
+                    text = { Text("删除", color = Color.Red) },
+                    onClick = { 
+                        expanded = false
+                        onDeleteClick()
+                    }
+                )
+            }
         }
     }
 }

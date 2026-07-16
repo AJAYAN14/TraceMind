@@ -31,19 +31,21 @@ import java.util.Locale
 import java.util.Calendar
 
 @Composable
-fun OnThisDayCard(diary: Diary, modifier: Modifier = Modifier) {
+fun OnThisDayCard(diary: Diary, onClick: () -> Unit = {}, modifier: Modifier = Modifier) {
     val formatter = SimpleDateFormat("yyyy年M月d日", Locale.getDefault())
     val dateStr = formatter.format(Date(diary.createdAt))
     val currentYear = Calendar.getInstance().get(Calendar.YEAR)
     val cal = Calendar.getInstance().apply { timeInMillis = diary.createdAt }
     val yearsAgo = currentYear - cal.get(Calendar.YEAR)
     val yearsAgoText = if (yearsAgo > 0) "${yearsAgo}年前" else "今天"
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(Color.White)
+    androidx.compose.material3.Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(24.dp),
+        color = Color.White,
+        shadowElevation = 2.dp,
+        modifier = modifier.fillMaxWidth()
     ) {
+        Column {
         Box {
             if (diary.coverImage != null) {
                 AsyncImage(
@@ -105,5 +107,6 @@ fun OnThisDayCard(diary: Diary, modifier: Modifier = Modifier) {
                 lineHeight = 18.sp
             )
         }
+    }
     }
 }

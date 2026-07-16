@@ -278,7 +278,7 @@ fun HomeScreen(
                             val firstDiary = uiState.onThisDayDiaries.first()
                             OnThisDayCard(
                                 diary = firstDiary,
-                                modifier = Modifier.clickable { onDiaryClick(firstDiary.id) }
+                                onClick = { onDiaryClick(firstDiary.id) }
                             )
                         }
                     }
@@ -337,7 +337,7 @@ fun HomeScreen(
                                 uiState.recentMemories.forEach { memory ->
                                     MemoryCard(
                                         diary = memory,
-                                        modifier = Modifier.clickable { onDiaryClick(memory.id) }
+                                        onClick = { onDiaryClick(memory.id) }
                                     )
                                 }
                             }

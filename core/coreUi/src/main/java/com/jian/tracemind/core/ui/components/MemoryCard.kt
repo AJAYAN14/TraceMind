@@ -31,17 +31,20 @@ import java.util.Date
 import java.util.Locale
 
 @Composable
-fun MemoryCard(diary: Diary, modifier: Modifier = Modifier) {
+fun MemoryCard(diary: Diary, onClick: () -> Unit = {}, modifier: Modifier = Modifier) {
     val formatter = SimpleDateFormat("M月d日", Locale.getDefault())
     val dateStr = formatter.format(Date(diary.createdAt))
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(Color.White)
-            .padding(16.dp),
-        verticalAlignment = Alignment.Top
+    androidx.compose.material3.Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(24.dp),
+        color = Color.White,
+        shadowElevation = 2.dp,
+        modifier = modifier.fillMaxWidth()
     ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.Top
+        ) {
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = diary.title.ifBlank { diary.content.take(20) },
@@ -93,6 +96,7 @@ fun MemoryCard(diary: Diary, modifier: Modifier = Modifier) {
                 .background(Color(0xFFF3F4F6)),
             contentScale = ContentScale.Crop
         )
+        }
     }
     }
 }

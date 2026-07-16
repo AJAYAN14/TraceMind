@@ -267,59 +267,63 @@ fun DiaryCardItem(
     val imgH = if (diary.coverImage != null) 160 else 0
 
     Box {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(16.dp))
-                .background(Color.White)
-                .combinedClickable(
-                    onClick = { /* TODO: Navigate to viewer/editor */ },
-                    onLongClick = { expanded = true }
-                )
+        androidx.compose.material3.Surface(
+            shape = RoundedCornerShape(24.dp),
+            color = Color.White,
+            shadowElevation = 2.dp,
+            modifier = Modifier.fillMaxWidth()
         ) {
-            if (imgH > 0) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(imgH.dp)
-                        .background(Color(0xFFF3F4F6))
-                ) {
-                    AsyncImage(
-                        model = diary.coverImage,
-                        contentDescription = diary.title,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize()
+            Column(
+                modifier = Modifier
+                    .combinedClickable(
+                        onClick = { /* TODO: Navigate to viewer/editor */ },
+                        onLongClick = { expanded = true }
                     )
-                }
-            }
-            Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp)) {
-                Text(
-                    text = diary.title.ifBlank { diary.content.take(20) }, // Use content snippet if title empty
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF1A1C1E),
-                    lineHeight = 16.sp,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Spacer(modifier = Modifier.height(2.dp))
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = dateStr,
-                        fontSize = 10.sp,
-                        color = Color(0xFF9CA3AF)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    
-                    val weather = diary.weather
-                    if (weather != null) {
-                        Text(text = weather, fontSize = 10.sp)
+            ) {
+                if (imgH > 0) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(imgH.dp)
+                            .background(Color(0xFFF3F4F6))
+                    ) {
+                        AsyncImage(
+                            model = diary.coverImage,
+                            contentDescription = diary.title,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize()
+                        )
                     }
-                    
-                    val mood = diary.mood
-                    if (mood != null) {
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(text = mood, fontSize = 10.sp)
+                }
+                Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp)) {
+                    Text(
+                        text = diary.title.ifBlank { diary.content.take(20) }, // Use content snippet if title empty
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF1A1C1E),
+                        lineHeight = 16.sp,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = dateStr,
+                            fontSize = 10.sp,
+                            color = Color(0xFF9CA3AF)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        
+                        val weather = diary.weather
+                        if (weather != null) {
+                            Text(text = weather, fontSize = 10.sp)
+                        }
+                        
+                        val mood = diary.mood
+                        if (mood != null) {
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(text = mood, fontSize = 10.sp)
+                        }
                     }
                 }
             }
