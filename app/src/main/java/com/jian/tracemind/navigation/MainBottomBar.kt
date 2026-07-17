@@ -51,8 +51,16 @@ fun MainBottomBar(
     backdrop: Backdrop,
     currentRoute: String?
 ) {
+    val showTabs = currentRoute in listOf(
+        AppRoute.Home.route,
+        AppRoute.FolderList.route,
+        AppRoute.Insights.route,
+        AppRoute.Profile.route
+    )
+    val showFAB = showTabs || currentRoute == AppRoute.FolderDetail.route
+
     AnimatedVisibility(
-        visible = currentRoute != AppRoute.Editor.route && currentRoute != AppRoute.Search.route,
+        visible = showFAB,
         enter = slideInVertically(
             initialOffsetY = { it },
             animationSpec = tween(300)
@@ -65,7 +73,7 @@ fun MainBottomBar(
         val bottomTabs = remember {
             listOf(
                 AppRoute.Home,
-                AppRoute.Folder,
+                AppRoute.FolderList,
                 AppRoute.Insights,
                 AppRoute.Profile
             )
@@ -75,8 +83,8 @@ fun MainBottomBar(
 
         LaunchedEffect(navState.value?.destination?.route) {
             val route = navState.value?.destination?.route ?: AppRoute.Home.route
-            val index = bottomTabs.indexOfFirst { it.route == route }.takeIf { it >= 0 } ?: 0
-            if (selectedTabIndex != index) {
+            val index = bottomTabs.indexOfFirst { it.route == route }
+            if (index >= 0 && selectedTabIndex != index) {
                 selectedTabIndex = index
             }
         }
@@ -89,57 +97,71 @@ fun MainBottomBar(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(modifier = Modifier.weight(1f)) {
-                LiquidBottomTabs(
-                    selectedTabIndex = { selectedTabIndex },
-                    onTabSelected = { index ->
-                        val route = bottomTabs[index].route
-                        if (route != navState.value?.destination?.route) {
-                            navController.navigate(route) {
-                                popUpTo(navController.graph.startDestinationId) { saveState = true }
-                                launchSingleTop = true
-                                restoreState = true
-                            }
-                        }
-                        if (selectedTabIndex != index) {
-                            selectedTabIndex = index
-                        }
-                    },
-                    backdrop = backdrop,
-                    tabsCount = 4
+                androidx.compose.animation.AnimatedVisibility(
+                    visible = showTabs,
+                    enter = androidx.compose.animation.fadeIn(tween(300)),
+                    exit = androidx.compose.animation.fadeOut(tween(300))
                 ) {
-                    val contentColor = if (isSystemInDarkTheme()) Color.White else Color.Black
-                    val iconColorFilter = androidx.compose.ui.graphics.ColorFilter.tint(contentColor)
-                    val labels = listOf("首页", "文件夹", "洞察", "个人")
-                    val selectedIcons = listOf(
-                        ImageVector.vectorResource(id = R.drawable.ic_home_rounded_filled),
-                        Icons.Rounded.Folder,
-                        Icons.Rounded.AutoGraph,
-                        Icons.Rounded.Person
-                    )
-                    val unselectedIcons = listOf(
-                        ImageVector.vectorResource(id = R.drawable.ic_home_rounded_outlined),
-                        Icons.Outlined.Folder,
-                        Icons.Outlined.AutoGraph,
-                        Icons.Outlined.Person
-                    )
-
-                    repeat(4) { index ->
-                        LiquidBottomTab(onClick = { 
-                            selectedTabIndex = index
-                        }) {
-                            val icon = if (selectedTabIndex == index) selectedIcons[index] else unselectedIcons[index]
-                            val label = labels[index]
-                            val painter = androidx.compose.ui.graphics.vector.rememberVectorPainter(icon)
-                            
-                            Box(
-                                Modifier
-                                    .size(28.dp)
-                                    .paint(painter, colorFilter = iconColorFilter)
-                            )
-                            BasicText(
-                                text = label,
-                                style = TextStyle(color = contentColor, fontSize = 12.sp)
-                            )
+                    LiquidBottomTabs(
+                        selectedTabIndex = { selectedTabIndex },
+                        onTabSelected = { index ->
+                            val route = bottomTabs[index].route
+                            if (route != navState.value?.destination?.route) {
+                                navController.navigate(route) {
+                                    popUpTo(navController.graph.startDestinationId) { saveState = true }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
+                            }
+                            if (selectedTabIndex != index) {
+                                selectedTabIndex = index
+                            }
+                        },
+                        backdrop = backdrop,
+                        tabsCount = 4
+                    ) {
+                        val contentColor = if (isSystemInDarkTheme()) Color.White else Color.Black
+                        val iconColorFilter = androidx.compose.ui.graphics.ColorFilter.tint(contentColor)
+                        val labels = listOf("首页", "文件夹", "洞察", "个人")
+                        val selectedIcons = listOf(
+                            ImageVector.vectorResource(id = R.drawable.ic_home_rounded_filled),
+                            Icons.Rounded.Folder,
+                            Icons.Rounded.AutoGraph,
+                            Icons.Rounded.Person
+                        )
+                        val unselectedIcons = listOf(
+                            ImageVector.vectorResource(id = R.drawable.ic_home_rounded_outlined),
+                            Icons.Outlined.Folder,
+                            Icons.Outlined.AutoGraph,
+                            Icons.Outlined.Person
+                        )
+    
+                        repeat(4) { index ->
+                            LiquidBottomTab(onClick = { 
+                                if (selectedTabIndex == index) {
+                                    val route = bottomTabs[index].route
+                                    navController.navigate(route) {
+                                        popUpTo(navController.graph.startDestinationId) { saveState = true }
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
+                                }
+                                selectedTabIndex = index
+                            }) {
+                                val icon = if (selectedTabIndex == index) selectedIcons[index] else unselectedIcons[index]
+                                val label = labels[index]
+                                val painter = androidx.compose.ui.graphics.vector.rememberVectorPainter(icon)
+                                
+                                Box(
+                                    Modifier
+                                        .size(28.dp)
+                                        .paint(painter, colorFilter = iconColorFilter)
+                                )
+                                BasicText(
+                                    text = label,
+                                    style = TextStyle(color = contentColor, fontSize = 12.sp)
+                                )
+                            }
                         }
                     }
                 }

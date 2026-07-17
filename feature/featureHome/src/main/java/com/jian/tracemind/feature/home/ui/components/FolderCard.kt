@@ -4,8 +4,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
+import com.jian.tracemind.core.ui.extensions.traceShadow
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -39,8 +41,7 @@ fun FolderCard(
     androidx.compose.material3.Surface(
         shape = RoundedCornerShape(24.dp),
         color = Color.White,
-        shadowElevation = 2.dp,
-        modifier = modifier.width(84.dp)
+        modifier = modifier.size(96.dp).traceShadow(borderRadius = 24.dp)
     ) {
         Column(
             modifier = Modifier

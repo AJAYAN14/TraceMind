@@ -3,6 +3,7 @@ package com.jian.tracemind.feature.profile.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import com.jian.tracemind.core.ui.extensions.traceShadow
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -107,10 +108,9 @@ fun ProfileScreen(innerPadding: PaddingValues, modifier: Modifier = Modifier) {
 
             // Settings Card
             Surface(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().traceShadow(borderRadius = 16.dp),
                 shape = RoundedCornerShape(16.dp),
-                color = Color.White,
-                shadowElevation = 2.dp
+                color = Color.White
             ) {
                 Row(
                     modifier = Modifier

@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import com.jian.tracemind.core.ui.extensions.traceShadow
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -42,8 +43,7 @@ fun OnThisDayCard(diary: Diary, onClick: () -> Unit = {}, modifier: Modifier = M
         onClick = onClick,
         shape = RoundedCornerShape(24.dp),
         color = Color.White,
-        shadowElevation = 2.dp,
-        modifier = modifier.fillMaxWidth()
+        modifier = modifier.fillMaxWidth().traceShadow(borderRadius = 24.dp)
     ) {
         Column {
         Box {

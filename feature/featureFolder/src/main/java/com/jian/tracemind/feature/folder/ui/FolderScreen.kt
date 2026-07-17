@@ -18,6 +18,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import com.jian.tracemind.core.ui.extensions.traceShadow
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -267,8 +268,7 @@ fun DiaryCardItem(
         androidx.compose.material3.Surface(
             shape = RoundedCornerShape(24.dp),
             color = Color.White,
-            shadowElevation = 2.dp,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth().traceShadow(borderRadius = 24.dp)
         ) {
             Column(
                 modifier = Modifier

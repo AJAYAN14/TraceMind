@@ -91,13 +91,20 @@ class MainActivity : ComponentActivity() {
                                 HomeScreen(
                                     innerPadding = innerPadding,
                                     onDiaryClick = { id -> navController.navigate(AppRoute.Editor.createRoute(diaryId = id)) },
-                                    onFolderClick = { id -> navController.navigate(AppRoute.Folder.createRoute(folderId = id)) },
+                                    onFolderClick = { id -> navController.navigate(AppRoute.FolderDetail.createRoute(folderId = id)) },
                                     onSearchClick = { navController.navigate(AppRoute.Search.route) },
                                     modifier = Modifier.fillMaxSize()
                                 )
                             }
+                            composable(AppRoute.FolderList.route) {
+                                com.jian.tracemind.feature.folder.ui.FolderListScreen(
+                                    innerPadding = innerPadding,
+                                    onNavigateToFolder = { id -> navController.navigate(AppRoute.FolderDetail.createRoute(folderId = id)) },
+                                    modifier = Modifier.fillMaxSize()
+                                )
+                            }
                             composable(
-                                route = AppRoute.Folder.route,
+                                route = AppRoute.FolderDetail.route,
                                 arguments = listOf(
                                     navArgument("folderId") {
                                         type = NavType.StringType
@@ -150,7 +157,8 @@ class MainActivity : ComponentActivity() {
 
                         val isMainScreen = currentRoute in listOf(
                             AppRoute.Home.route,
-                            AppRoute.Folder.route,
+                            AppRoute.FolderList.route,
+                            AppRoute.FolderDetail.route,
                             AppRoute.Insights.route,
                             AppRoute.Profile.route
                         )

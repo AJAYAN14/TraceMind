@@ -3,6 +3,7 @@ package com.jian.tracemind.core.ui.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import com.jian.tracemind.core.ui.extensions.traceShadow
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -38,8 +39,7 @@ fun MemoryCard(diary: Diary, onClick: () -> Unit = {}, modifier: Modifier = Modi
         onClick = onClick,
         shape = RoundedCornerShape(24.dp),
         color = Color.White,
-        shadowElevation = 2.dp,
-        modifier = modifier.fillMaxWidth()
+        modifier = modifier.fillMaxWidth().traceShadow(borderRadius = 24.dp)
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
