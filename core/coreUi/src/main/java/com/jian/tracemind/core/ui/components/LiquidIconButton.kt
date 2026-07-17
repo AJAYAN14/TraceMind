@@ -52,7 +52,7 @@ fun LiquidIconButton(
     modifier: Modifier = Modifier,
     size: Dp = 48f.dp,
     isInteractive: Boolean = true,
-    tint: Color = Color(0xFF0088FF),
+    tint: Color = Color(0xFF00C4B5),
     surfaceColor: Color = Color.Unspecified,
     content: @Composable () -> Unit
 ) {
