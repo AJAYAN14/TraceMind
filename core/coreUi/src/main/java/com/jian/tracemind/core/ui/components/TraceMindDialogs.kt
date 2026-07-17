@@ -1,46 +1,168 @@
 package com.jian.tracemind.core.ui.components
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
+import com.kyant.backdrop.Backdrop
+import com.kyant.backdrop.drawBackdrop
+import com.kyant.backdrop.effects.blur
+import com.kyant.backdrop.effects.colorControls
+import com.kyant.backdrop.effects.lens
 
 @Composable
-fun TraceMindConfirmDialog(
+fun LiquidConfirmDialog(
     title: String,
     text: String,
     confirmText: String = "确定",
-    confirmTextColor: Color = Color.Red,
     dismissText: String = "取消",
     onConfirm: () -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    backdrop: Backdrop? = null
 ) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(title, fontSize = 18.sp, fontWeight = FontWeight.Bold) },
-        text = { Text(text) },
-        confirmButton = {
-            TextButton(onClick = onConfirm) {
-                Text(confirmText, color = confirmTextColor)
+    val isLightTheme = !isSystemInDarkTheme()
+    val contentColor = if (isLightTheme) Color.Black else Color.White
+    val accentColor = Color(0xFF00C4B5)
+    val containerColor = if (isLightTheme) Color(0xFFFAFAFA).copy(0.6f) else Color(0xFF121212).copy(0.4f)
+    val dimColor = if (isLightTheme) Color(0xFF29293A).copy(0.23f) else Color(0xFF121212).copy(0.56f)
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .zIndex(100f)
+            .background(dimColor)
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = onDismiss
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            Modifier
+                .padding(40.dp)
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                    onClick = {}
+                )
+                .then(
+                    if (backdrop != null) {
+                        Modifier.drawBackdrop(
+                            backdrop = backdrop,
+                            shape = { RoundedCornerShape(48.dp) },
+                            effects = {
+                                colorControls(
+                                    brightness = if (isLightTheme) 0.2f else 0f,
+                                    saturation = 1.5f
+                                )
+                                blur(if (isLightTheme) 16.dp.toPx() else 8.dp.toPx())
+                                lens(24.dp.toPx(), 48.dp.toPx(), depthEffect = true)
+                            },
+                            onDrawSurface = { drawRect(containerColor) }
+                        )
+                    } else {
+                        Modifier
+                            .clip(RoundedCornerShape(48.dp))
+                            .background(containerColor)
+                    }
+                )
+                .fillMaxWidth()
+        ) {
+            BasicText(
+                text = title,
+                modifier = Modifier.padding(28.dp, 24.dp, 28.dp, 12.dp),
+                style = TextStyle(contentColor, 24.sp, FontWeight.Medium)
+            )
+
+            BasicText(
+                text = text,
+                modifier = Modifier
+                    .then(
+                        if (isLightTheme) {
+                            Modifier
+                        } else {
+                            Modifier.graphicsLayer(blendMode = BlendMode.Plus)
+                        }
+                    )
+                    .padding(24.dp, 12.dp, 24.dp, 12.dp),
+                style = TextStyle(contentColor.copy(0.68f), 15.sp),
+                maxLines = 5
+            )
+
+            Row(
+                Modifier
+                    .padding(24.dp, 12.dp, 24.dp, 24.dp)
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(
+                    Modifier
+                        .clip(CircleShape)
+                        .background(containerColor.copy(0.2f))
+                        .clickable(onClick = onDismiss)
+                        .height(48.dp)
+                        .weight(1f)
+                        .padding(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterHorizontally),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    BasicText(
+                        text = dismissText,
+                        style = TextStyle(contentColor, 16.sp)
+                    )
+                }
+                Row(
+                    Modifier
+                        .clip(CircleShape)
+                        .background(accentColor)
+                        .clickable(onClick = onConfirm)
+                        .height(48.dp)
+                        .weight(1f)
+                        .padding(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterHorizontally),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    BasicText(
+                        text = confirmText,
+                        style = TextStyle(Color.White, 16.sp)
+                    )
+                }
             }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(dismissText, color = Color(0xFF9CA3AF))
-            }
-        },
-        containerColor = Color.White
-    )
+        }
+    }
 }
 
 @Composable
-fun TraceMindInputDialog(
+fun LiquidInputDialog(
     title: String,
     value: String,
     onValueChange: (String) -> Unit,
@@ -48,30 +170,127 @@ fun TraceMindInputDialog(
     confirmText: String = "保存",
     dismissText: String = "取消",
     onConfirm: () -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    backdrop: Backdrop? = null
 ) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(title, fontSize = 18.sp, fontWeight = FontWeight.Bold) },
-        text = {
-            TextField(
+    val isLightTheme = !isSystemInDarkTheme()
+    val contentColor = if (isLightTheme) Color.Black else Color.White
+    val accentColor = Color(0xFF00C4B5)
+    val containerColor = if (isLightTheme) Color(0xFFFAFAFA).copy(0.6f) else Color(0xFF121212).copy(0.4f)
+    val dimColor = if (isLightTheme) Color(0xFF29293A).copy(0.23f) else Color(0xFF121212).copy(0.56f)
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .zIndex(100f)
+            .background(dimColor)
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = onDismiss
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            Modifier
+                .padding(40.dp)
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                    onClick = {}
+                )
+                .then(
+                    if (backdrop != null) {
+                        Modifier.drawBackdrop(
+                            backdrop = backdrop,
+                            shape = { RoundedCornerShape(48.dp) },
+                            effects = {
+                                colorControls(
+                                    brightness = if (isLightTheme) 0.2f else 0f,
+                                    saturation = 1.5f
+                                )
+                                blur(if (isLightTheme) 16.dp.toPx() else 8.dp.toPx())
+                                lens(24.dp.toPx(), 48.dp.toPx(), depthEffect = true)
+                            },
+                            onDrawSurface = { drawRect(containerColor) }
+                        )
+                    } else {
+                        Modifier
+                            .clip(RoundedCornerShape(48.dp))
+                            .background(containerColor)
+                    }
+                )
+                .fillMaxWidth()
+        ) {
+            BasicText(
+                text = title,
+                modifier = Modifier.padding(28.dp, 24.dp, 28.dp, 12.dp),
+                style = TextStyle(contentColor, 24.sp, FontWeight.Medium)
+            )
+
+            BasicTextField(
                 value = value,
                 onValueChange = onValueChange,
-                placeholder = { Text(placeholder) },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth()
+                textStyle = TextStyle(contentColor, 16.sp),
+                cursorBrush = SolidColor(accentColor),
+                modifier = Modifier
+                    .padding(horizontal = 24.dp, vertical = 12.dp)
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(containerColor.copy(alpha = 0.3f))
+                    .padding(16.dp),
+                decorationBox = { innerTextField ->
+                    if (value.isEmpty()) {
+                        BasicText(
+                            text = placeholder,
+                            style = TextStyle(contentColor.copy(0.5f), 16.sp)
+                        )
+                    }
+                    innerTextField()
+                },
+                singleLine = true
             )
-        },
-        confirmButton = {
-            TextButton(onClick = onConfirm) {
-                Text(confirmText, color = Color(0xFF1A1C1E))
+
+            Row(
+                Modifier
+                    .padding(24.dp, 12.dp, 24.dp, 24.dp)
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(
+                    Modifier
+                        .clip(CircleShape)
+                        .background(containerColor.copy(0.2f))
+                        .clickable(onClick = onDismiss)
+                        .height(48.dp)
+                        .weight(1f)
+                        .padding(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterHorizontally),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    BasicText(
+                        text = dismissText,
+                        style = TextStyle(contentColor, 16.sp)
+                    )
+                }
+                Row(
+                    Modifier
+                        .clip(CircleShape)
+                        .background(accentColor)
+                        .clickable(onClick = onConfirm)
+                        .height(48.dp)
+                        .weight(1f)
+                        .padding(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterHorizontally),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    BasicText(
+                        text = confirmText,
+                        style = TextStyle(Color.White, 16.sp)
+                    )
+                }
             }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(dismissText, color = Color(0xFF9CA3AF))
-            }
-        },
-        containerColor = Color.White
-    )
+        }
+    }
 }
