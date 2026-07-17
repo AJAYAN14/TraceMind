@@ -136,7 +136,7 @@ fun HomeScreen(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Box(
                             modifier = Modifier
-                                .size(36.dp)
+                                .size(48.dp)
                                 .clip(CircleShape)
                                 .background(Color(0xFF1A1C1E)),
                             contentAlignment = Alignment.Center
@@ -144,7 +144,7 @@ fun HomeScreen(
                             Text(
                                 text = "A",
                                 color = Color.White,
-                                fontSize = 13.sp,
+                                fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold
                             )
                         }
@@ -182,7 +182,7 @@ fun HomeScreen(
             
             val isEmpty = uiState.onThisDayDiaries.isEmpty() && uiState.folders.isEmpty() && uiState.recentMemories.isEmpty()
             
-            Box(Modifier.weight(1f).background(Color(0xFFF8F9FA)).layerBackdrop(localBackdrop)) {
+            Box(Modifier.weight(1f).layerBackdrop(localBackdrop)) {
                 if (isEmpty) {
                 Box(
                     modifier = Modifier.fillMaxSize().padding(bottom = 80.dp),

@@ -77,7 +77,7 @@ fun InsightsScreen(
                 }
             )
             
-            Box(Modifier.weight(1f).background(Color(0xFFF8F9FA)).layerBackdrop(localBackdrop)) {
+            Box(Modifier.weight(1f).layerBackdrop(localBackdrop)) {
                 LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(
