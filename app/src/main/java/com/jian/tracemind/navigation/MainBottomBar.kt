@@ -167,9 +167,11 @@ fun MainBottomBar(
                 }
             }
             Spacer(modifier = Modifier.width(16.dp))
+            val currentFolderId = navState.value?.arguments?.getString("folderId")
             GlobalAddButton(
                 backdrop = backdrop,
-                onNavigateToEditor = { navController.navigate(AppRoute.Editor.createRoute()) }
+                onNavigateToEditor = { navController.navigate(AppRoute.Editor.createRoute(folderId = currentFolderId)) },
+                currentFolderId = currentFolderId
             )
         }
     }

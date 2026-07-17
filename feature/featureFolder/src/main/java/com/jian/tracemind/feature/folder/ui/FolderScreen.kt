@@ -38,7 +38,8 @@ fun FolderScreen(
     modifier: Modifier = Modifier,
     innerPadding: PaddingValues = PaddingValues(),
     viewModel: FolderViewModel = hiltViewModel(),
-    onNavigateBack: () -> Unit = {}
+    onNavigateBack: () -> Unit = {},
+    onNavigateToFolder: (String) -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var isSearchExpanded by remember { mutableStateOf(false) }
@@ -209,6 +210,63 @@ fun FolderScreen(
                     bottom = innerPadding.calculateBottomPadding() + 80.dp // leave space for bottom nav and FAB
                 )
             ) {
+                if (uiState.subFolders.isNotEmpty()) {
+                    item {
+                        Text(
+                            text = "子文件夹",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF1A1C1E),
+                            modifier = Modifier.padding(bottom = 12.dp)
+                        )
+                    }
+                    
+                    val folderCol1 = uiState.subFolders.filterIndexed { index, _ -> index % 2 == 0 }
+                    val folderCol2 = uiState.subFolders.filterIndexed { index, _ -> index % 2 == 1 }
+
+                    item {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            Column(
+                                modifier = Modifier.weight(1f),
+                                verticalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                folderCol1.forEach { folder ->
+                                    com.jian.tracemind.feature.folder.ui.FolderGridItem(
+                                        folder = folder,
+                                        onClick = { onNavigateToFolder(folder.id) }
+                                    )
+                                }
+                            }
+                            Column(
+                                modifier = Modifier.weight(1f),
+                                verticalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                folderCol2.forEach { folder ->
+                                    com.jian.tracemind.feature.folder.ui.FolderGridItem(
+                                        folder = folder,
+                                        onClick = { onNavigateToFolder(folder.id) }
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (uiState.diaries.isNotEmpty()) {
+                    item {
+                        Text(
+                            text = "日记",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF1A1C1E),
+                            modifier = Modifier.padding(bottom = 12.dp)
+                        )
+                    }
+                }
+
                 item {
                     Row(
                         modifier = Modifier.fillMaxWidth(),

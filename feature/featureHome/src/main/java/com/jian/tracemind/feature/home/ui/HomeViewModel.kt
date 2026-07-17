@@ -106,19 +106,38 @@ class HomeViewModel @Inject constructor(
 
     fun deleteFolder(folderId: String) {
         viewModelScope.launch {
-            // First, get all diaries in this folder and unbind them
-            // Since there's no single function to fetch them directly without Flow in repository,
-            // we will collect the flow once.
-            // Wait, DiaryRepository doesn't have a direct suspend fun to get all by folder id.
-            // Let's get all diaries and filter manually for simplicity, as this is local DB.
-            val allDiariesFlow = diaryRepository.getAllDiaries()
-            // We can collect once
-            val diariesToUpdate = allDiariesFlow.first().filter { it.folderId == folderId }
-            diariesToUpdate.forEach { diary ->
-                diaryRepository.updateDiary(diary.copy(folderId = null, updatedAt = System.currentTimeMillis()))
+            // 获取全量的 folders 列表来构建树
+            val allFolders = folderRepository.getAllFolders().first()
+            val folderIdsToDelete = mutableSetOf<String>()
+            
+            // 递归获取所有子文件夹的 ID
+            fun collectDescendants(currentId: String) {
+                folderIdsToDelete.add(currentId)
+                allFolders.filter { it.parentId == currentId }.forEach { child ->
+                    collectDescendants(child.id)
+                }
             }
-            // Then delete the folder
-            folderRepository.deleteFolder(folderId)
+            collectDescendants(folderId)
+
+            // 提取需要删除的所有日记
+            val allDiaries = diaryRepository.getAllDiaries().first()
+            val diariesToDelete = allDiaries.filter { it.folderId in folderIdsToDelete }
+
+            // 删除这些日记
+            diariesToDelete.forEach { diary ->
+                diaryRepository.deleteDiary(diary.id)
+            }
+
+            // 删除这些文件夹 (包含本身)
+            folderIdsToDelete.forEach { id ->
+                folderRepository.deleteFolder(id)
+            }
+        }
+    }
+
+    fun deleteDiary(diaryId: String) {
+        viewModelScope.launch {
+            diaryRepository.deleteDiary(diaryId)
         }
     }
 }

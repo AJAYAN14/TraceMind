@@ -115,6 +115,7 @@ class MainActivity : ComponentActivity() {
                                 FolderScreen(
                                     innerPadding = innerPadding, 
                                     onNavigateBack = { navController.popBackStack() },
+                                    onNavigateToFolder = { id -> navController.navigate(AppRoute.FolderDetail.createRoute(folderId = id)) },
                                     modifier = Modifier.fillMaxSize()
                                 )
                             }

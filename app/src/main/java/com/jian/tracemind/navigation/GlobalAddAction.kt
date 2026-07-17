@@ -48,11 +48,11 @@ class GlobalAddViewModel @Inject constructor(
     private val folderRepository: FolderRepository
 ) : ViewModel() {
 
-    fun createFolder(name: String) {
+    fun createFolder(name: String, parentId: String? = null) {
         viewModelScope.launch {
             val newFolder = Folder(
                 id = java.util.UUID.randomUUID().toString(),
-                parentId = null,
+                parentId = parentId,
                 name = name,
                 createdAt = System.currentTimeMillis(),
                 updatedAt = System.currentTimeMillis()
@@ -66,6 +66,7 @@ class GlobalAddViewModel @Inject constructor(
 fun GlobalAddButton(
     backdrop: Backdrop,
     onNavigateToEditor: () -> Unit,
+    currentFolderId: String? = null,
     viewModel: GlobalAddViewModel = hiltViewModel()
 ) {
     var showMenu by remember { mutableStateOf(false) }
@@ -143,7 +144,7 @@ fun GlobalAddButton(
             confirmButton = {
                 TextButton(onClick = {
                     if (folderName.isNotBlank()) {
-                        viewModel.createFolder(folderName)
+                        viewModel.createFolder(folderName, currentFolderId)
                         showCreateFolderDialog = false
                         folderName = ""
                     }

@@ -24,23 +24,37 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.sp
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import coil.compose.AsyncImage
 import com.jian.tracemind.core.domain.model.Diary
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun MemoryCard(diary: Diary, onClick: () -> Unit = {}, modifier: Modifier = Modifier) {
+fun MemoryCard(diary: Diary, onClick: () -> Unit = {}, onDeleteClick: () -> Unit = {}, modifier: Modifier = Modifier) {
+    var expanded by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
     val formatter = SimpleDateFormat("M月d日", Locale.getDefault())
     val dateStr = formatter.format(Date(diary.createdAt))
     androidx.compose.material3.Surface(
-        onClick = onClick,
         shape = RoundedCornerShape(24.dp),
         color = Color.White,
         modifier = modifier.fillMaxWidth().traceShadow(borderRadius = 24.dp)
+            .clip(RoundedCornerShape(24.dp))
+            .combinedClickable(
+                onClick = onClick,
+                onLongClick = { expanded = true }
+            )
     ) {
+        androidx.compose.foundation.layout.Box {
         Row(
             modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.Top
@@ -97,6 +111,20 @@ fun MemoryCard(diary: Diary, onClick: () -> Unit = {}, modifier: Modifier = Modi
             contentScale = ContentScale.Crop
         )
         }
-    }
+        }
+        
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            DropdownMenuItem(
+                text = { Text("删除", color = Color.Red) },
+                onClick = { 
+                    expanded = false
+                    onDeleteClick()
+                }
+            )
+        }
+        }
     }
 }

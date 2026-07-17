@@ -16,7 +16,8 @@ data class FolderUiState(
     val folderId: String? = null,
     val currentFolder: Folder? = null,
     val diaries: List<Diary> = emptyList(),
-    val folders: List<Folder> = emptyList(),
+    val folders: List<Folder> = emptyList(), // All folders, used for moving
+    val subFolders: List<Folder> = emptyList(), // Folders whose parent is current folderId
     val isLoading: Boolean = false,
     val searchQuery: String = "",
     val activeChip: String = "全部"
@@ -58,7 +59,8 @@ class FolderViewModel @Inject constructor(
 
         viewModelScope.launch {
             folderRepository.getAllFolders().collect { folders ->
-                _uiState.update { it.copy(folders = folders) }
+                val sub = folders.filter { it.parentId == folderId }
+                _uiState.update { it.copy(folders = folders, subFolders = sub) }
             }
         }
         

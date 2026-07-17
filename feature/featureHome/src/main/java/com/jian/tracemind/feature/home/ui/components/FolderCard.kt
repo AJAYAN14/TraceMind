@@ -25,6 +25,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.sp
 import com.jian.tracemind.feature.home.ui.FolderUiModel
 
@@ -45,6 +46,7 @@ fun FolderCard(
     ) {
         Column(
             modifier = Modifier
+                .clip(RoundedCornerShape(24.dp))
                 .combinedClickable(
                     onClick = onClick,
                     onLongClick = { expanded = true }

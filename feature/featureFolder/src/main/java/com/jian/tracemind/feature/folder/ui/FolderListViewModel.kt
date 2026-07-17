@@ -28,7 +28,8 @@ class FolderListViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             folderRepository.getAllFolders().collect { folders ->
-                _uiState.update { it.copy(folders = folders, isLoading = false) }
+                val rootFolders = folders.filter { it.parentId == null }
+                _uiState.update { it.copy(folders = rootFolders, isLoading = false) }
             }
         }
     }

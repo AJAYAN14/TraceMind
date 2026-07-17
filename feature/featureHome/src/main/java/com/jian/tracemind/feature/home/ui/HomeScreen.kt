@@ -77,60 +77,50 @@ fun HomeScreen(
     var showDeleteDialog by remember { mutableStateOf(false) }
     var deleteFolderId by remember { mutableStateOf("") }
     var deleteFolderName by remember { mutableStateOf("") }
+    
+    var showDeleteDiaryDialog by remember { mutableStateOf(false) }
+    var deleteDiaryId by remember { mutableStateOf("") }
 
     if (showRenameDialog) {
-        AlertDialog(
-            onDismissRequest = { showRenameDialog = false },
-            title = { Text("重命名文件夹", fontSize = 18.sp, fontWeight = FontWeight.Bold) },
-            text = {
-                TextField(
-                    value = renameFolderName,
-                    onValueChange = { renameFolderName = it },
-                    placeholder = { Text("新文件夹名称") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            },
-            confirmButton = {
-                TextButton(onClick = {
-                    if (renameFolderName.isNotBlank()) {
-                        viewModel.renameFolder(renameFolderId, renameFolderName)
-                        showRenameDialog = false
-                    }
-                }) {
-                    Text("保存", color = Color(0xFF1A1C1E))
+        com.jian.tracemind.core.ui.components.TraceMindInputDialog(
+            title = "重命名文件夹",
+            value = renameFolderName,
+            onValueChange = { renameFolderName = it },
+            placeholder = "新文件夹名称",
+            confirmText = "保存",
+            onConfirm = {
+                if (renameFolderName.isNotBlank()) {
+                    viewModel.renameFolder(renameFolderId, renameFolderName)
+                    showRenameDialog = false
                 }
             },
-            dismissButton = {
-                TextButton(onClick = { showRenameDialog = false }) {
-                    Text("取消", color = Color(0xFF9CA3AF))
-                }
-            },
-            containerColor = Color.White
+            onDismiss = { showRenameDialog = false }
         )
     }
 
     if (showDeleteDialog) {
-        AlertDialog(
-            onDismissRequest = { showDeleteDialog = false },
-            title = { Text("删除文件夹", fontSize = 18.sp, fontWeight = FontWeight.Bold) },
-            text = {
-                Text("确定要删除“$deleteFolderName”吗？\n该文件夹下的日记不会被删除，它们将被移至“全部日记”。")
+        com.jian.tracemind.core.ui.components.TraceMindConfirmDialog(
+            title = "删除文件夹",
+            text = "确定要删除“$deleteFolderName”吗？\n这将永久删除该文件夹及其内部所有的子文件夹和日记！该操作不可恢复。",
+            confirmText = "删除",
+            onConfirm = {
+                viewModel.deleteFolder(deleteFolderId)
+                showDeleteDialog = false
             },
-            confirmButton = {
-                TextButton(onClick = {
-                    viewModel.deleteFolder(deleteFolderId)
-                    showDeleteDialog = false
-                }) {
-                    Text("删除", color = Color.Red)
-                }
+            onDismiss = { showDeleteDialog = false }
+        )
+    }
+
+    if (showDeleteDiaryDialog) {
+        com.jian.tracemind.core.ui.components.TraceMindConfirmDialog(
+            title = "删除日记",
+            text = "确定要永久删除这篇日记吗？该操作不可恢复。",
+            confirmText = "删除",
+            onConfirm = {
+                viewModel.deleteDiary(deleteDiaryId)
+                showDeleteDiaryDialog = false
             },
-            dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) {
-                    Text("取消", color = Color(0xFF9CA3AF))
-                }
-            },
-            containerColor = Color.White
+            onDismiss = { showDeleteDiaryDialog = false }
         )
     }
 
@@ -240,7 +230,11 @@ fun HomeScreen(
                             val firstDiary = uiState.onThisDayDiaries.first()
                             OnThisDayCard(
                                 diary = firstDiary,
-                                onClick = { onDiaryClick(firstDiary.id) }
+                                onClick = { onDiaryClick(firstDiary.id) },
+                                onDeleteClick = {
+                                    deleteDiaryId = firstDiary.id
+                                    showDeleteDiaryDialog = true
+                                }
                             )
                         }
                     }
@@ -299,7 +293,11 @@ fun HomeScreen(
                                 uiState.recentMemories.forEach { memory ->
                                     MemoryCard(
                                         diary = memory,
-                                        onClick = { onDiaryClick(memory.id) }
+                                        onClick = { onDiaryClick(memory.id) },
+                                        onDeleteClick = {
+                                            deleteDiaryId = memory.id
+                                            showDeleteDiaryDialog = true
+                                        }
                                     )
                                 }
                             }
