@@ -268,48 +268,45 @@ fun HomeScreen(
             }
         }
 
-        if (showRenameDialog) {
-            com.jian.tracemind.core.ui.components.LiquidInputDialog(
-                title = "重命名文件夹",
-                value = renameFolderName,
-                onValueChange = { renameFolderName = it },
-                placeholder = "新文件夹名称",
-                confirmText = "保存",
-                onConfirm = {
-                    if (renameFolderName.isNotBlank()) {
-                        viewModel.renameFolder(renameFolderId, renameFolderName)
-                        showRenameDialog = false
-                    }
-                },
-                onDismiss = { showRenameDialog = false },
-                backdrop = localBackdrop
-            )
-        }
-        if (showDeleteDialog) {
-            com.jian.tracemind.core.ui.components.LiquidConfirmDialog(
-                title = "删除文件夹",
-                text = "确定要删除“$deleteFolderName”吗？\n这将永久删除该文件夹及其内部所有的子文件夹和日记！该操作不可恢复。",
-                confirmText = "删除",
-                onConfirm = {
-                    viewModel.deleteFolder(deleteFolderId)
-                    showDeleteDialog = false
-                },
-                onDismiss = { showDeleteDialog = false },
-                backdrop = localBackdrop
-            )
-        }
-        if (showDeleteDiaryDialog) {
-            com.jian.tracemind.core.ui.components.LiquidConfirmDialog(
-                title = "删除日记",
-                text = "确定要永久删除这篇日记吗？该操作不可恢复。",
-                confirmText = "删除",
-                onConfirm = {
-                    viewModel.deleteDiary(deleteDiaryId)
-                    showDeleteDiaryDialog = false
-                },
-                onDismiss = { showDeleteDiaryDialog = false },
-                backdrop = localBackdrop
-            )
-        }
+        com.jian.tracemind.core.ui.components.LiquidInputDialog(
+            visible = showRenameDialog,
+            title = "重命名文件夹",
+            value = renameFolderName,
+            onValueChange = { renameFolderName = it },
+            placeholder = "新文件夹名称",
+            confirmText = "保存",
+            onConfirm = {
+                if (renameFolderName.isNotBlank()) {
+                    viewModel.renameFolder(renameFolderId, renameFolderName)
+                    showRenameDialog = false
+                }
+            },
+            onDismiss = { showRenameDialog = false },
+            backdrop = localBackdrop
+        )
+        com.jian.tracemind.core.ui.components.LiquidConfirmDialog(
+            visible = showDeleteDialog,
+            title = "删除文件夹",
+            text = "确定要删除“$deleteFolderName”吗？\n这将永久删除该文件夹及其内部所有的子文件夹和日记！该操作不可恢复。",
+            confirmText = "删除",
+            onConfirm = {
+                viewModel.deleteFolder(deleteFolderId)
+                showDeleteDialog = false
+            },
+            onDismiss = { showDeleteDialog = false },
+            backdrop = localBackdrop
+        )
+        com.jian.tracemind.core.ui.components.LiquidConfirmDialog(
+            visible = showDeleteDiaryDialog,
+            title = "删除日记",
+            text = "确定要永久删除这篇日记吗？该操作不可恢复。",
+            confirmText = "删除",
+            onConfirm = {
+                viewModel.deleteDiary(deleteDiaryId)
+                showDeleteDiaryDialog = false
+            },
+            onDismiss = { showDeleteDiaryDialog = false },
+            backdrop = localBackdrop
+        )
     }
 }
