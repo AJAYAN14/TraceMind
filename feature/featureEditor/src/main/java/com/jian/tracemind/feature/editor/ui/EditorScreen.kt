@@ -266,13 +266,27 @@ fun EditorScreen(
                 }
             }
         ) { paddingValues ->
-            CompositionLocalProvider(
-                LocalContentColor provides contentColor,
-                LocalTextSelectionColors provides TextSelectionColors(
-                    handleColor = contentColor,
-                    backgroundColor = contentColor.copy(alpha = 0.4f)
-                )
-            ) {
+            val isInitializing by viewModel.isInitializing
+
+            if (isInitializing) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
+                    contentAlignment = androidx.compose.ui.Alignment.Center
+                ) {
+                    androidx.compose.material3.CircularProgressIndicator(
+                        color = contentColor
+                    )
+                }
+            } else {
+                CompositionLocalProvider(
+                    LocalContentColor provides contentColor,
+                    LocalTextSelectionColors provides TextSelectionColors(
+                        handleColor = contentColor,
+                        backgroundColor = contentColor.copy(alpha = 0.4f)
+                    )
+                ) {
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -418,6 +432,7 @@ fun EditorScreen(
                             }
                         }
                     }
+                }
                 }
             }
         }

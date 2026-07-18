@@ -61,6 +61,9 @@ class EditorViewModel @Inject constructor(
     private var autoSaveJob: Job? = null
     private var createdAt: Long = System.currentTimeMillis()
 
+    private val _isInitializing = mutableStateOf(true)
+    val isInitializing: State<Boolean> = _isInitializing
+
     init {
         val diaryId = savedStateHandle.get<String>("diaryId")
         folderId = savedStateHandle.get<String>("folderId")
@@ -85,9 +88,11 @@ class EditorViewModel @Inject constructor(
                         )
                     }
                 }
+                _isInitializing.value = false
             }
         } else {
             currentDiaryId = UUID.randomUUID().toString()
+            _isInitializing.value = false
         }
     }
 
