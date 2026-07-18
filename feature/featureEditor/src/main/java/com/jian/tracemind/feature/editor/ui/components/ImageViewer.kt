@@ -10,16 +10,23 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.jian.tracemind.core.ui.components.LiquidAppBar
+import com.jian.tracemind.core.ui.components.LiquidIconButton
+import com.kyant.backdrop.backdrops.rememberLayerBackdrop
+import com.kyant.backdrop.backdrops.layerBackdrop
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -36,6 +43,7 @@ fun ImageViewer(
             dismissOnClickOutside = false
         )
     ) {
+        val localBackdrop = rememberLayerBackdrop()
         var scale by remember { mutableFloatStateOf(1f) }
         var offset by remember { mutableStateOf(Offset.Zero) }
 
@@ -44,6 +52,26 @@ fun ImageViewer(
                 .fillMaxSize()
                 .background(Color.Black)
         ) {
+            // Blurred background image
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(imageUrl)
+                    .crossfade(true)
+                    .build(),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .blur(64.dp)
+            )
+            
+            // Darkening overlay
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.6f))
+            )
+
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
                     .data(imageUrl)
@@ -53,6 +81,7 @@ fun ImageViewer(
                 contentScale = ContentScale.Fit,
                 modifier = Modifier
                     .fillMaxSize()
+                    .layerBackdrop(localBackdrop)
                     .pointerInput(Unit) {
                         detectTransformGestures { centroid, pan, zoom, rotation ->
                             scale = (scale * zoom).coerceIn(1f, 5f)
@@ -77,29 +106,42 @@ fun ImageViewer(
             )
 
             // Top bar
-            TopAppBar(
+            LiquidAppBar(
                 title = {},
                 navigationIcon = {
-                    IconButton(onClick = onDismissRequest) {
+                    LiquidIconButton(
+                        onClick = onDismissRequest,
+                        backdrop = localBackdrop,
+                        tint = Color.Unspecified,
+                        surfaceColor = Color.Unspecified
+                    ) {
                         Icon(
                             imageVector = Icons.Default.Close,
                             contentDescription = "Close",
-                            tint = Color.White
+                            tint = Color.White,
+                            modifier = Modifier
+                                .size(24.dp)
+                                .graphicsLayer { blendMode = BlendMode.Difference }
                         )
                     }
                 },
                 actions = {
-                    IconButton(onClick = onShareClick) {
+                    LiquidIconButton(
+                        onClick = onShareClick,
+                        backdrop = localBackdrop,
+                        tint = Color.Unspecified,
+                        surfaceColor = Color.Unspecified
+                    ) {
                         Icon(
                             imageVector = Icons.Default.Share,
                             contentDescription = "Share",
-                            tint = Color.White
+                            tint = Color.White,
+                            modifier = Modifier
+                                .size(24.dp)
+                                .graphicsLayer { blendMode = BlendMode.Difference }
                         )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Black.copy(alpha = 0.5f)
-                ),
                 modifier = Modifier.fillMaxWidth()
             )
         }
