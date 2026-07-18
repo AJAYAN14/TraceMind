@@ -291,12 +291,6 @@ fun EditorScreen(
                     modifier = Modifier
                         .fillMaxSize()
                         .background(backgroundColor)
-                        .clickable(
-                            interactionSource = remember { MutableInteractionSource() },
-                            indication = null
-                        ) {
-                            // Focus handled by NativeRichTextEditor internally
-                        }
                         .padding(bottom = paddingValues.calculateBottomPadding())
                         .consumeWindowInsets(paddingValues)
                         .imePadding()

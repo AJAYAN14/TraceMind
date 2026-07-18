@@ -206,6 +206,22 @@ fun NativeRichTextEditor(
                 gravity = android.view.Gravity.TOP or android.view.Gravity.START
                 inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_FLAG_MULTI_LINE
                 
+                isVerticalScrollBarEnabled = true
+                isScrollContainer = true
+                isSingleLine = false
+                
+                // Ensure touch events are not intercepted by Compose parents when scrolling
+                setOnTouchListener { v, event ->
+                    v.parent?.requestDisallowInterceptTouchEvent(true)
+                    when (event.action and android.view.MotionEvent.ACTION_MASK) {
+                        android.view.MotionEvent.ACTION_UP,
+                        android.view.MotionEvent.ACTION_CANCEL -> {
+                            v.parent?.requestDisallowInterceptTouchEvent(false)
+                        }
+                    }
+                    false
+                }
+                
                 controller.editText = this
                 controller.onContentChanged = onContentChanged
                 controller.init(initialHtml, coroutineScope)
