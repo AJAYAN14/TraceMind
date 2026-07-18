@@ -32,39 +32,35 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
-import com.jian.tracemind.feature.editor.ui.components.markdown.MarkdownFormat
 
 private data class ToolbarItem(
     val icon: ImageVector,
     val contentDescription: String,
-    val format: MarkdownFormat,
+    val format: String,
 )
 
 private val toolbarItems =
     listOf(
-        ToolbarItem(Icons.Rounded.FormatBold, "Bold", MarkdownFormat.BOLD),
-        ToolbarItem(Icons.Rounded.FormatItalic, "Italic", MarkdownFormat.ITALIC),
-        ToolbarItem(Icons.Rounded.StrikethroughS, "Strikethrough", MarkdownFormat.STRIKETHROUGH),
-        ToolbarItem(Icons.Rounded.HMobiledata, "Heading 1", MarkdownFormat.H1),
-        ToolbarItem(Icons.AutoMirrored.Rounded.FormatListBulleted, "Bullet List", MarkdownFormat.BULLET_LIST),
-        ToolbarItem(Icons.Rounded.FormatListNumbered, "Numbered List", MarkdownFormat.NUMBERED_LIST),
-        ToolbarItem(Icons.Rounded.CheckBox, "Checklist", MarkdownFormat.CHECKLIST),
-        ToolbarItem(Icons.Rounded.FormatQuote, "Quote", MarkdownFormat.QUOTE),
-        ToolbarItem(Icons.Rounded.Code, "Code Block", MarkdownFormat.CODE_BLOCK),
+        ToolbarItem(Icons.Rounded.FormatBold, "Bold", "bold"),
+        ToolbarItem(Icons.Rounded.FormatItalic, "Italic", "italic"),
+        ToolbarItem(Icons.Rounded.StrikethroughS, "Strikethrough", "strikethrough"),
+        ToolbarItem(Icons.Rounded.HMobiledata, "Heading 1", "h1"),
+        ToolbarItem(Icons.AutoMirrored.Rounded.FormatListBulleted, "Bullet List", "bullet"),
+        ToolbarItem(Icons.Rounded.FormatListNumbered, "Numbered List", "numbered"),
+        ToolbarItem(Icons.Rounded.FormatQuote, "Quote", "quote"),
     )
 
 @Composable
 fun FormatToolbar(
     contentColor: Color,
-    onFormatClick: (MarkdownFormat) -> Unit,
+    onFormatClick: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Row(
-        modifier =
-            modifier
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState())
-                .padding(horizontal = 4.dp),
+        modifier = modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState())
+            .padding(horizontal = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         toolbarItems.forEach { item ->

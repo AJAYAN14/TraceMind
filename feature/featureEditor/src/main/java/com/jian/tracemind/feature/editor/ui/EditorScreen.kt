@@ -39,11 +39,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.jian.tracemind.feature.editor.ui.components.EditorTopBar
 import com.jian.tracemind.feature.editor.ui.components.FormatToolbar
-import com.jian.tracemind.feature.editor.ui.components.markdown.MarkdownField
-import com.jian.tracemind.feature.editor.ui.components.markdown.MarkdownFormatter
 import com.jian.tracemind.feature.editor.ui.theme.NoteColorPalette
 import com.kyant.backdrop.backdrops.LayerBackdrop
 import com.kyant.backdrop.backdrops.rememberLayerBackdrop
@@ -69,15 +68,10 @@ fun EditorScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val isDarkTheme = isSystemInDarkTheme()
 
-    var isPreviewMode by remember { mutableStateOf(false) }
     var showMenu by remember { mutableStateOf(false) }
     var showInfoDialog by remember { mutableStateOf(false) }
 
-    var contentTextFieldValue by remember {
-        mutableStateOf(
-            androidx.compose.ui.text.input.TextFieldValue(text = contentState.text)
-        )
-    }
+    val editorController = com.jian.tracemind.feature.editor.ui.components.rememberNativeRichTextEditorController()
 
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia(),
@@ -104,9 +98,6 @@ fun EditorScreen(
         NoteColorPalette.Light
     }
 
-    val contentFocusRequester = remember { FocusRequester() }
-    val titleFocusRequester = remember { FocusRequester() }
-
     val interactionSource = remember { MutableInteractionSource() }
     val scope = rememberCoroutineScope()
 
@@ -114,12 +105,6 @@ fun EditorScreen(
     var showFormatToolbar by remember { mutableStateOf(false) }
 
     Box(modifier = modifier) {
-        LaunchedEffect(contentState.text) {
-            if (contentState.text != contentTextFieldValue.text) {
-                contentTextFieldValue = contentTextFieldValue.copy(text = contentState.text)
-            }
-        }
-
         LaunchedEffect(resolvedColorInt) {
             noteBackgroundAnimatable.animateTo(Color(resolvedColorInt))
         }
@@ -137,6 +122,9 @@ fun EditorScreen(
                     is EditorViewModel.UiEvent.SavedNote -> {
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                         onBack()
+                    }
+                    is EditorViewModel.UiEvent.ImageInserted -> {
+                        editorController.insertImage(event.path)
                     }
                 }
             }
@@ -160,8 +148,11 @@ fun EditorScreen(
                         FormatToolbar(
                             contentColor = contentColor,
                             onFormatClick = { format ->
-                                contentTextFieldValue = MarkdownFormatter.injectMarkdown(format, contentTextFieldValue)
-                                viewModel.onEvent(EditorEvent.EnteredContent(contentTextFieldValue.text))
+                                when (format) {
+                                    "bold" -> editorController.toggleStyle(android.graphics.Typeface.BOLD)
+                                    "italic" -> editorController.toggleStyle(android.graphics.Typeface.ITALIC)
+                                    // other formats can be added later if needed
+                                }
                             }
                         )
                     }
@@ -212,20 +203,6 @@ fun EditorScreen(
                             Icon(
                                 imageVector = Icons.Default.TextFields,
                                 contentDescription = "Format text",
-                                tint = contentColor,
-                                modifier = Modifier.size(28.dp)
-                            )
-                        }
-                        FilledIconButton(
-                            onClick = { isPreviewMode = !isPreviewMode },
-                            colors = IconButtonDefaults.filledIconButtonColors(
-                                containerColor = if (isPreviewMode) contentColor.copy(alpha = 0.3f) else contentColor.copy(alpha = 0.15f),
-                                contentColor = contentColor
-                            )
-                        ) {
-                            Icon(
-                                imageVector = if (isPreviewMode) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                                contentDescription = if (isPreviewMode) "Edit mode" else "Preview mode",
                                 tint = contentColor,
                                 modifier = Modifier.size(28.dp)
                             )
@@ -304,9 +281,7 @@ fun EditorScreen(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null
                         ) {
-                            if (!isPreviewMode) {
-                                contentFocusRequester.requestFocus()
-                            }
+                            // Focus handled by NativeRichTextEditor internally
                         }
                         .padding(bottom = paddingValues.calculateBottomPadding())
                         .consumeWindowInsets(paddingValues)
@@ -320,31 +295,53 @@ fun EditorScreen(
                             onSave = { viewModel.onEvent(EditorEvent.SaveNote) },
                             backdrop = localBackdrop
                         )
+                        
+                        // Title Input
+                        androidx.compose.foundation.text.BasicTextField(
+                            value = titleState.text,
+                            onValueChange = { viewModel.onEvent(EditorEvent.EnteredTitle(it)) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 8.dp),
+                            textStyle = androidx.compose.ui.text.TextStyle(
+                                color = contentColor,
+                                fontSize = 24.sp,
+                                fontWeight = FontWeight.Bold
+                            ),
+                            cursorBrush = androidx.compose.ui.graphics.SolidColor(contentColor),
+                            decorationBox = { innerTextField ->
+                                Box {
+                                    if (titleState.text.isEmpty()) {
+                                        Text(
+                                            text = titleState.hint,
+                                            style = androidx.compose.ui.text.TextStyle(
+                                                color = contentColor.copy(alpha = 0.5f),
+                                                fontSize = 24.sp,
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                        )
+                                    }
+                                    innerTextField()
+                                }
+                            }
+                        )
                     }
                     
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
                     
-                    MarkdownField(
-                        titleText = titleState.text,
-                        contentTextFieldValue = contentTextFieldValue,
-                        contentColor = contentColor,
-                        isPreviewMode = isPreviewMode,
-                        interactionSource = interactionSource,
-                        contentFocusRequester = contentFocusRequester,
-                        titleFocusRequester = titleFocusRequester,
-                        onTitleChange = { viewModel.onEvent(EditorEvent.EnteredTitle(it)) },
-                        onTitleFocusChange = { viewModel.onEvent(EditorEvent.ChangeTitleFocus(it)) },
-                        onContentChange = {
-                            contentTextFieldValue = it
-                            viewModel.onEvent(EditorEvent.EnteredContent(it.text))
-                        },
-                        onContentFocusChange = {
-                            viewModel.onEvent(EditorEvent.ChangeContentFocus(it))
+                    com.jian.tracemind.feature.editor.ui.components.NativeRichTextEditor(
+                        controller = editorController,
+                        initialHtml = contentState.text,
+                        coroutineScope = scope,
+                        onContentChanged = { html ->
+                            viewModel.onEvent(EditorEvent.EnteredContent(html))
                         },
                         modifier = Modifier
                             .fillMaxWidth()
                             .weight(1f)
-                            .padding(horizontal = 16.dp)
+                            .padding(horizontal = 16.dp),
+                        textColor = contentColor,
+                        hint = contentState.hint
                     )
                 }
             }

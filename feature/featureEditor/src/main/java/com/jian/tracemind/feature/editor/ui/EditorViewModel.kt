@@ -178,15 +178,7 @@ class EditorViewModel @Inject constructor(
                         val uri = Uri.parse(event.uriString)
                         val localPath = MediaHelper.copyImageToInternalStorage(application, uri)
                         if (localPath != null) {
-                            val currentText = _noteContent.value.text
-                            val newText = if (currentText.isBlank()) {
-                                "![]($localPath)\n"
-                            } else {
-                                "$currentText\n\n![]($localPath)\n"
-                            }
-                            _noteContent.value = noteContent.value.copy(text = newText)
-                            savedStateHandle["content"] = newText
-                            triggerAutoSave()
+                            _eventFlow.emit(UiEvent.ImageInserted(localPath))
                         } else {
                             _eventFlow.emit(UiEvent.ShowSnackbar("图片插入失败"))
                         }
@@ -222,5 +214,6 @@ class EditorViewModel @Inject constructor(
     sealed class UiEvent {
         data class ShowSnackbar(val message: String) : UiEvent()
         object SavedNote : UiEvent()
+        data class ImageInserted(val path: String) : UiEvent()
     }
 }
