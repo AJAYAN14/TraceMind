@@ -74,11 +74,25 @@ fun EditorScreen(
 
     val editorController = com.jian.tracemind.feature.editor.ui.components.rememberNativeRichTextEditorController()
 
+    var showImageSourceDialog by remember { mutableStateOf(false) }
+    var tempCameraUri by remember { mutableStateOf<android.net.Uri?>(null) }
+
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia(),
         onResult = { uri ->
             uri?.let {
                 viewModel.onEvent(EditorEvent.InsertImage(it.toString()))
+            }
+        }
+    )
+
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture(),
+        onResult = { success ->
+            if (success) {
+                tempCameraUri?.let { uri ->
+                    viewModel.onEvent(EditorEvent.InsertImage(uri.toString()))
+                }
             }
         }
     )
@@ -178,9 +192,7 @@ fun EditorScreen(
                         }
                         FilledIconButton(
                             onClick = {
-                                photoPickerLauncher.launch(
-                                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                                )
+                                showImageSourceDialog = true
                             },
                             colors = IconButtonDefaults.filledIconButtonColors(
                                 containerColor = contentColor.copy(alpha = 0.15f),
@@ -467,6 +479,61 @@ fun EditorScreen(
                 containerColor = backgroundColor,
                 titleContentColor = contentColor,
                 textContentColor = contentColor.copy(alpha = 0.8f)
+            )
+        }
+
+        if (showImageSourceDialog) {
+            AlertDialog(
+                onDismissRequest = { showImageSourceDialog = false },
+                title = { Text(text = "添加图片") },
+                text = {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        OutlinedButton(
+                            onClick = {
+                                showImageSourceDialog = false
+                                photoPickerLauncher.launch(
+                                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                                )
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = contentColor),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, contentColor.copy(alpha = 0.5f))
+                        ) {
+                            Icon(Icons.Default.PhotoLibrary, contentDescription = null, modifier = Modifier.padding(end = 8.dp))
+                            Text("从相册选择")
+                        }
+                        OutlinedButton(
+                            onClick = {
+                                showImageSourceDialog = false
+                                val tempFile = java.io.File.createTempFile("photo_${System.currentTimeMillis()}", ".jpg", context.cacheDir)
+                                val uri = androidx.core.content.FileProvider.getUriForFile(
+                                    context,
+                                    "${context.packageName}.fileprovider",
+                                    tempFile
+                                )
+                                tempCameraUri = uri
+                                cameraLauncher.launch(uri)
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = contentColor),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, contentColor.copy(alpha = 0.5f))
+                        ) {
+                            Icon(Icons.Default.PhotoCamera, contentDescription = null, modifier = Modifier.padding(end = 8.dp))
+                            Text("拍照")
+                        }
+                    }
+                },
+                confirmButton = {
+                    TextButton(onClick = { showImageSourceDialog = false }) {
+                        Text("取消", color = contentColor)
+                    }
+                },
+                containerColor = backgroundColor,
+                titleContentColor = contentColor,
+                textContentColor = contentColor
             )
         }
 
