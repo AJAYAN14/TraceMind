@@ -34,6 +34,7 @@ class NativeRichTextEditorController {
     private var initialHtml: String? = null
     private var initialCoroutineScope: CoroutineScope? = null
     var onContentChanged: ((String) -> Unit)? = null
+    var onImageClick: ((String) -> Unit)? = null
 
     internal fun init(html: String?, scope: CoroutineScope) {
         initialHtml = html
@@ -185,6 +186,7 @@ fun NativeRichTextEditor(
     initialHtml: String,
     coroutineScope: CoroutineScope,
     onContentChanged: (String) -> Unit,
+    onImageClick: ((String) -> Unit)? = null,
     modifier: Modifier = Modifier,
     textColor: Color = Color.Black,
     hint: String = ""
@@ -210,8 +212,33 @@ fun NativeRichTextEditor(
                 isScrollContainer = true
                 isSingleLine = false
                 
+                val gestureDetector = android.view.GestureDetector(ctx, object : android.view.GestureDetector.SimpleOnGestureListener() {
+                    override fun onSingleTapUp(e: android.view.MotionEvent): Boolean {
+                        val x = e.x.toInt() - totalPaddingLeft + scrollX
+                        val y = e.y.toInt() - totalPaddingTop + scrollY
+                        val l = layout ?: return false
+                        val line = l.getLineForVertical(y)
+                        val off = l.getOffsetForHorizontal(line, x.toFloat())
+                        
+                        val spans = text.getSpans(off, off, android.text.style.ImageSpan::class.java)
+                        if (spans.isNotEmpty()) {
+                            val span = spans.first()
+                            val spanStart = text.getSpanStart(span)
+                            val spanEnd = text.getSpanEnd(span)
+                            if (off in spanStart..spanEnd) {
+                                span.source?.let { src ->
+                                    controller.onImageClick?.invoke(src)
+                                    return true
+                                }
+                            }
+                        }
+                        return false
+                    }
+                })
+                
                 // Ensure touch events are not intercepted by Compose parents when scrolling
                 setOnTouchListener { v, event ->
+                    gestureDetector.onTouchEvent(event)
                     v.parent?.requestDisallowInterceptTouchEvent(true)
                     when (event.action and android.view.MotionEvent.ACTION_MASK) {
                         android.view.MotionEvent.ACTION_UP,
@@ -224,6 +251,7 @@ fun NativeRichTextEditor(
                 
                 controller.editText = this
                 controller.onContentChanged = onContentChanged
+                controller.onImageClick = onImageClick
                 controller.init(initialHtml, coroutineScope)
                 
                 addTextChangedListener(object: android.text.TextWatcher {

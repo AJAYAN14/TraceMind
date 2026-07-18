@@ -70,6 +70,7 @@ fun EditorScreen(
 
     var showMenu by remember { mutableStateOf(false) }
     var showInfoDialog by remember { mutableStateOf(false) }
+    var viewingImageUrl by remember { mutableStateOf<String?>(null) }
 
     val editorController = com.jian.tracemind.feature.editor.ui.components.rememberNativeRichTextEditorController()
 
@@ -344,6 +345,9 @@ fun EditorScreen(
                         onContentChanged = { html ->
                             viewModel.onEvent(EditorEvent.EnteredContent(html))
                         },
+                        onImageClick = { imageUrl ->
+                            viewingImageUrl = imageUrl
+                        },
                         modifier = Modifier
                             .fillMaxWidth()
                             .weight(1f)
@@ -463,6 +467,35 @@ fun EditorScreen(
                 containerColor = backgroundColor,
                 titleContentColor = contentColor,
                 textContentColor = contentColor.copy(alpha = 0.8f)
+            )
+        }
+
+        viewingImageUrl?.let { imageUrl ->
+            com.jian.tracemind.feature.editor.ui.components.ImageViewer(
+                imageUrl = imageUrl,
+                onDismissRequest = { viewingImageUrl = null },
+                onShareClick = {
+                    val fileUri = try {
+                        val file = java.io.File(imageUrl)
+                        androidx.core.content.FileProvider.getUriForFile(
+                            context,
+                            "${context.packageName}.fileprovider",
+                            file
+                        )
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        null
+                    }
+                    
+                    fileUri?.let { uri ->
+                        val shareIntent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                            type = "image/*"
+                            putExtra(android.content.Intent.EXTRA_STREAM, uri)
+                            addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                        }
+                        context.startActivity(android.content.Intent.createChooser(shareIntent, "Share Image"))
+                    }
+                }
             )
         }
     }
