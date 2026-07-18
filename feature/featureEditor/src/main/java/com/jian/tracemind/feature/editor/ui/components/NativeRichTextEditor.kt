@@ -33,6 +33,7 @@ class NativeRichTextEditorController {
 
     private var initialHtml: String? = null
     private var initialCoroutineScope: CoroutineScope? = null
+    var onContentChanged: ((String) -> Unit)? = null
 
     internal fun init(html: String?, scope: CoroutineScope) {
         initialHtml = html
@@ -110,6 +111,7 @@ class NativeRichTextEditorController {
         if (!hasStyle) {
             spannable.setSpan(StyleSpan(style), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
         }
+        onContentChanged?.invoke(getHtml())
     }
 
     fun insertImage(source: String) {
@@ -145,6 +147,7 @@ class NativeRichTextEditorController {
                     
                     withContext(Dispatchers.Main) {
                         view.text.setSpan(imageSpan, imageStart, imageEnd, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+                        onContentChanged?.invoke(getHtml())
                     }
                 }
             }
@@ -204,6 +207,7 @@ fun NativeRichTextEditor(
                 inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_FLAG_MULTI_LINE
                 
                 controller.editText = this
+                controller.onContentChanged = onContentChanged
                 controller.init(initialHtml, coroutineScope)
                 
                 addTextChangedListener(object: android.text.TextWatcher {
