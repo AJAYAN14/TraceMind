@@ -4,8 +4,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Share
+import com.jian.tracemind.feature.editor.ui.components.icons.CloseBold
+import com.jian.tracemind.feature.editor.ui.components.icons.IosShareBold
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -39,6 +39,7 @@ fun ImageViewer(
         onDismissRequest = onDismissRequest,
         properties = DialogProperties(
             usePlatformDefaultWidth = false,
+            decorFitsSystemWindows = false,
             dismissOnBackPress = true,
             dismissOnClickOutside = false
         )
@@ -116,7 +117,7 @@ fun ImageViewer(
                         surfaceColor = Color.Unspecified
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Close,
+                            imageVector = CloseBold,
                             contentDescription = "Close",
                             tint = Color.White,
                             modifier = Modifier
@@ -133,7 +134,7 @@ fun ImageViewer(
                         surfaceColor = Color.Unspecified
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Share,
+                            imageVector = IosShareBold,
                             contentDescription = "Share",
                             tint = Color.White,
                             modifier = Modifier
@@ -142,7 +143,9 @@ fun ImageViewer(
                         )
                     }
                 },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .statusBarsPadding()
             )
         }
     }
