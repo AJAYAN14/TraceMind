@@ -1,6 +1,10 @@
 package com.jian.tracemind.feature.editor.ui
 
+import android.annotation.SuppressLint
 import android.content.Intent
+import android.location.Geocoder
+import android.location.LocationManager
+import android.os.Build
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -19,6 +23,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.LocalTextSelectionColors
 import androidx.compose.foundation.text.selection.TextSelectionColors
 import androidx.compose.material.icons.Icons
@@ -37,9 +42,11 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.jian.tracemind.feature.editor.ui.components.EditorTopBar
 import com.jian.tracemind.feature.editor.ui.components.FormatToolbar
@@ -77,6 +84,17 @@ fun EditorScreen(
     var showMoodPicker by remember { mutableStateOf(false) }
     var showWeatherPicker by remember { mutableStateOf(false) }
     var showTagsEditor by remember { mutableStateOf(false) }
+    
+    val locationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        if (permissions.getOrDefault(android.Manifest.permission.ACCESS_FINE_LOCATION, false) ||
+            permissions.getOrDefault(android.Manifest.permission.ACCESS_COARSE_LOCATION, false)) {
+            fetchLocation(context) { locStr ->
+                viewModel.onEvent(EditorEvent.SetLocation(locStr))
+            }
+        }
+    }
     
     data class SelectedImageInfo(val url: String, val rect: android.graphics.Rect)
     var selectedImageInfo by remember { mutableStateOf<SelectedImageInfo?>(null) }
@@ -365,9 +383,18 @@ fun EditorScreen(
                             mood = viewModel.noteMood.value,
                             weather = viewModel.noteWeather.value,
                             tags = viewModel.noteTags.value,
+                            location = viewModel.noteLocation.value,
                             onMoodClick = { showMoodPicker = true },
                             onWeatherClick = { showWeatherPicker = true },
                             onTagsClick = { showTagsEditor = true },
+                            onLocationClick = { 
+                                locationPermissionLauncher.launch(
+                                    arrayOf(
+                                        android.Manifest.permission.ACCESS_FINE_LOCATION,
+                                        android.Manifest.permission.ACCESS_COARSE_LOCATION
+                                    )
+                                )
+                            },
                             contentColor = contentColor
                         )
                     }
@@ -839,6 +866,70 @@ fun EditorScreen(
                 titleContentColor = contentColor,
                 textContentColor = contentColor
             )
+        }
+    }
+}
+
+@SuppressLint("MissingPermission")
+private fun fetchLocation(context: android.content.Context, onLocationFetched: (String) -> Unit) {
+    val locationManager = context.getSystemService(android.content.Context.LOCATION_SERVICE) as LocationManager
+    
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+        locationManager.getCurrentLocation(
+            LocationManager.NETWORK_PROVIDER,
+            null,
+            ContextCompat.getMainExecutor(context)
+        ) { location ->
+            if (location != null) {
+                geocodeLocation(context, location.latitude, location.longitude, onLocationFetched)
+            } else {
+                locationManager.getCurrentLocation(
+                    LocationManager.GPS_PROVIDER,
+                    null,
+                    ContextCompat.getMainExecutor(context)
+                ) { loc2 ->
+                    if (loc2 != null) {
+                        geocodeLocation(context, loc2.latitude, loc2.longitude, onLocationFetched)
+                    } else {
+                        onLocationFetched("无法获取位置")
+                    }
+                }
+            }
+        }
+    } else {
+        onLocationFetched("系统版本过低")
+    }
+}
+
+private fun geocodeLocation(context: android.content.Context, lat: Double, lng: Double, onResult: (String) -> Unit) {
+    val geocoder = Geocoder(context, Locale.getDefault())
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        geocoder.getFromLocation(lat, lng, 1) { addresses ->
+            val address = addresses.firstOrNull()
+            if (address != null) {
+                val city = address.locality ?: address.adminArea ?: ""
+                val district = address.subLocality ?: ""
+                val result = if (city.isNotEmpty()) "$city $district".trim() else "未知位置"
+                onResult(result)
+            } else {
+                onResult("未知位置")
+            }
+        }
+    } else {
+        try {
+            @Suppress("DEPRECATION")
+            val addresses = geocoder.getFromLocation(lat, lng, 1)
+            val address = addresses?.firstOrNull()
+            if (address != null) {
+                val city = address.locality ?: address.adminArea ?: ""
+                val district = address.subLocality ?: ""
+                val result = if (city.isNotEmpty()) "$city $district".trim() else "未知位置"
+                onResult(result)
+            } else {
+                onResult("未知位置")
+            }
+        } catch (e: Exception) {
+            onResult("位置解析失败")
         }
     }
 }

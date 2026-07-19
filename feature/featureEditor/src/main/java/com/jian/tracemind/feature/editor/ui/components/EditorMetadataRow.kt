@@ -6,6 +6,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Cloud
 import androidx.compose.material.icons.rounded.LocalOffer
+import androidx.compose.material.icons.rounded.LocationOn
 import androidx.compose.material.icons.rounded.Mood
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -19,9 +20,11 @@ fun EditorMetadataRow(
     mood: String?,
     weather: String?,
     tags: List<String>,
+    location: String?,
     onMoodClick: () -> Unit,
     onWeatherClick: () -> Unit,
     onTagsClick: () -> Unit,
+    onLocationClick: () -> Unit,
     contentColor: Color,
     modifier: Modifier = Modifier
 ) {
@@ -67,6 +70,16 @@ fun EditorMetadataRow(
             label = { Text(if (tags.isEmpty()) "标签" else tags.joinToString(", ")) },
             leadingIcon = {
                 Icon(Icons.Rounded.LocalOffer, contentDescription = "Tags", modifier = Modifier.size(16.dp))
+            },
+            colors = colors,
+            border = border
+        )
+
+        AssistChip(
+            onClick = onLocationClick,
+            label = { Text(location ?: "添加位置") },
+            leadingIcon = {
+                Icon(Icons.Rounded.LocationOn, contentDescription = "Location", modifier = Modifier.size(16.dp))
             },
             colors = colors,
             border = border

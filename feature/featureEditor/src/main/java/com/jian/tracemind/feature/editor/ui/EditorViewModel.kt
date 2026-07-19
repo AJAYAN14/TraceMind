@@ -62,6 +62,9 @@ class EditorViewModel @Inject constructor(
     private val _noteTags = mutableStateOf<List<String>>(emptyList())
     val noteTags: State<List<String>> = _noteTags
 
+    private val _noteLocation = mutableStateOf<String?>(null)
+    val noteLocation: State<String?> = _noteLocation
+
     private val _eventFlow = MutableSharedFlow<UiEvent>()
     val eventFlow = _eventFlow.asSharedFlow()
 
@@ -88,6 +91,7 @@ class EditorViewModel @Inject constructor(
                     _noteMood.value = diary.mood
                     _noteWeather.value = diary.weather
                     _noteTags.value = diary.tags
+                    _noteLocation.value = diary.location
                     
                     if (savedStateHandle.get<String>("title") == null) {
                         _noteTitle.value = noteTitle.value.copy(
@@ -138,7 +142,8 @@ class EditorViewModel @Inject constructor(
                 tags = noteTags.value,
                 images = emptyList(),
                 audioPath = null,
-                coverImage = null
+                coverImage = null,
+                location = noteLocation.value
             )
             
             if (isNew) {
@@ -235,6 +240,10 @@ class EditorViewModel @Inject constructor(
             }
             is EditorEvent.SetTags -> {
                 _noteTags.value = event.tags
+                triggerAutoSave()
+            }
+            is EditorEvent.SetLocation -> {
+                _noteLocation.value = event.location
                 triggerAutoSave()
             }
         }

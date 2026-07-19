@@ -12,5 +12,6 @@ data class Diary(
     val tags: List<String>,
     val images: List<String> = emptyList(),
     val audioPath: String? = null,
-    val coverImage: String? = null // 自动提取的第一张图片，用于瀑布流封面展示
+    val coverImage: String? = null, // 自动提取的第一张图片，用于瀑布流封面展示
+    val location: String? = null
 )

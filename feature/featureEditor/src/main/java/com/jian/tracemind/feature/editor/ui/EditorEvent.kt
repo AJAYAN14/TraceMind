@@ -56,4 +56,6 @@ sealed class EditorEvent {
     data class SetWeather(val weather: String?) : EditorEvent()
     
     data class SetTags(val tags: List<String>) : EditorEvent()
+
+    data class SetLocation(val location: String?) : EditorEvent()
 }

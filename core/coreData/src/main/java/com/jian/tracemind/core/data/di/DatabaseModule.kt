@@ -30,12 +30,18 @@ object DatabaseModule {
             }
         }
         
+        val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE diaries ADD COLUMN location TEXT")
+            }
+        }
+        
         return Room.databaseBuilder(
             context,
             TraceMindDatabase::class.java,
             "tracemind.db"
         )
-        .addMigrations(MIGRATION_1_2)
+        .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
         .build()
     }
 
