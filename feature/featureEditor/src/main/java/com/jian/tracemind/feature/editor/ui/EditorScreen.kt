@@ -52,6 +52,8 @@ import com.jian.tracemind.feature.editor.ui.components.EditorTopBar
 import com.jian.tracemind.feature.editor.ui.components.FormatToolbar
 import com.jian.tracemind.feature.editor.ui.components.icons.IosShareBold
 import com.jian.tracemind.feature.editor.ui.theme.NoteColorPalette
+import com.jian.tracemind.feature.editor.ui.components.bloomcolorpicker.BloomColorPicker
+import com.jian.tracemind.feature.editor.ui.components.bloomcolorpicker.BloomColorPickerStyle
 import com.kyant.backdrop.backdrops.LayerBackdrop
 import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import com.kyant.backdrop.backdrops.layerBackdrop
@@ -611,79 +613,25 @@ fun EditorScreen(
         }
 
         if (showColorPicker) {
-            ModalBottomSheet(
-                onDismissRequest = { showColorPicker = false },
-                containerColor = backgroundColor
-            ) {
-                Text(
-                    text = "选择背景颜色",
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.SemiBold
-                    ),
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                )
-
-                LazyRow(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 32.dp),
-                    contentPadding = PaddingValues(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    items(noteColors) { color ->
-                        val colorInt = remember(color) { color.toArgb() }
-                        val isSelected = resolvedColorInt == colorInt
-                        val scale by animateFloatAsState(
-                            targetValue = if (isSelected) 1.2f else 1f,
-                            animationSpec = spring(
-                                dampingRatio = Spring.DampingRatioMediumBouncy,
-                                stiffness = Spring.StiffnessMedium
-                            ),
-                            label = "scale"
+            BloomColorPicker(
+                initialColor = backgroundColor,
+                onColorChanged = { color ->
+                    val colorInt = color.toArgb()
+                    scope.launch {
+                        noteBackgroundAnimatable.animateTo(
+                            targetValue = color,
+                            animationSpec = tween(durationMillis = 500)
                         )
-                        Box(
-                            contentAlignment = Alignment.Center,
-                            modifier = Modifier
-                                .size(48.dp)
-                                .graphicsLayer {
-                                    scaleX = scale
-                                    scaleY = scale
-                                }
-                                .shadow(if (isSelected) 8.dp else 4.dp, CircleShape)
-                                .clip(CircleShape)
-                                .background(color)
-                                .border(
-                                    width = if (isSelected) 3.dp else 0.dp,
-                                    color = if (isSelected) contentColor else Color.Transparent,
-                                    shape = CircleShape
-                                )
-                                .clickable(
-                                    interactionSource = remember { MutableInteractionSource() },
-                                    indication = ripple(bounded = true)
-                                ) {
-                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                    scope.launch {
-                                        noteBackgroundAnimatable.animateTo(
-                                            targetValue = Color(colorInt),
-                                            animationSpec = tween(durationMillis = 500)
-                                        )
-                                    }
-                                    viewModel.onEvent(EditorEvent.ChangeColor(colorInt))
-                                }
-                        ) {
-                            if (isSelected) {
-                                Icon(
-                                    imageVector = Icons.Rounded.Check,
-                                    contentDescription = "Selected",
-                                    tint = contentColor,
-                                    modifier = Modifier.size(20.dp)
-                                )
-                            }
-                        }
                     }
-                }
-                }
-            }
+                    viewModel.onEvent(EditorEvent.ChangeColor(colorInt))
+                },
+                onDismiss = { showColorPicker = false },
+                autoOpen = true,
+                style = BloomColorPickerStyle(
+                    showHexPill = false,
+                    hapticFeedback = true,
+                ),
+            )
         }
 
         if (showInfoDialog) {
@@ -938,6 +886,7 @@ fun EditorScreen(
             )
         }
     }
+}
 }
 
 @SuppressLint("MissingPermission")
