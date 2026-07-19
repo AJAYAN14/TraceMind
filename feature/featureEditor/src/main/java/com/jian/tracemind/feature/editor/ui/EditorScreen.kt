@@ -397,6 +397,15 @@ fun EditorScreen(
                             },
                             contentColor = contentColor
                         )
+
+                        val updateTime = viewModel.noteTimestamp.value ?: System.currentTimeMillis()
+                        val sdfTime = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+                        Text(
+                            text = "最后修改: ${sdfTime.format(Date(updateTime))}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = contentColor.copy(alpha = 0.5f),
+                            modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp)
+                        )
                     }
                     
                     Spacer(modifier = Modifier.height(8.dp))
@@ -449,13 +458,14 @@ fun EditorScreen(
                                 val dpWidth = with(density) { info.rect.width().toDp() }
                                 val dpHeight = with(density) { info.rect.height().toDp() }
                                 
+                                val themeColor = Color(0xFF00C4B5)
                                 Box(
                                     modifier = Modifier
                                         .offset(x = dpX, y = dpY)
                                         .size(width = dpWidth, height = dpHeight)
-                                        .border(2.dp, contentColor.copy(alpha = 0.5f), androidx.compose.foundation.shape.RoundedCornerShape(8.dp))
-                                        .clip(androidx.compose.foundation.shape.RoundedCornerShape(8.dp))
-                                        .background(contentColor.copy(alpha = 0.2f))
+                                        .border(3.dp, themeColor, androidx.compose.foundation.shape.RoundedCornerShape(12.dp))
+                                        .clip(androidx.compose.foundation.shape.RoundedCornerShape(12.dp))
+                                        .background(themeColor.copy(alpha = 0.15f))
                                 )
                                 
                                 androidx.compose.ui.window.Popup(

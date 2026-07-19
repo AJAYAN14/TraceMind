@@ -1,6 +1,8 @@
 package com.jian.tracemind.feature.editor.ui.components
 
 import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Paint
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.text.Editable
@@ -9,6 +11,8 @@ import android.text.Spannable
 import android.text.Spanned
 import android.text.style.ImageSpan
 import android.text.style.StyleSpan
+import android.view.HapticFeedbackConstants
+import android.view.MotionEvent
 import android.view.ViewGroup
 import android.widget.EditText
 import androidx.compose.runtime.Composable
@@ -253,6 +257,7 @@ fun NativeRichTextEditor(
     onImageClick: ((String, android.graphics.Rect) -> Unit)? = null,
     modifier: Modifier = Modifier,
     textColor: Color = Color.Black,
+    indicatorColor: Color = Color(0xFF00C4B5),
     hint: String = ""
 ) {
     val context = LocalContext.current
@@ -262,8 +267,241 @@ fun NativeRichTextEditor(
         factory = { ctx ->
             object : EditText(ctx) {
                 var lastSelStart = -1
+
+                // ── Drag state ──
+                var isDraggingImage = false
+                var dragImageSpan: ImageSpan? = null
+                var dragImageSource: String? = null
+                var dragImageDrawable: Drawable? = null
+                var dragOriginalStart: Int = -1
+                var dragOriginalEnd: Int = -1
+                var dragTouchX: Float = 0f
+                var dragTouchY: Float = 0f
+                var dragDropOffset: Int = -1
+                var isSuppressingTextWatcher = false
+
+                // ── Edge auto-scroll ──
+                val edgeScrollIntervalMs = 16L // ~60fps
+                val edgeScrollMaxSpeed = 20 // px per frame
+                val maxOverflowPx = (150 * resources.displayMetrics.density).toInt() // speed ramps over this distance
+                var autoScrollRunnable: Runnable? = null
+
+                fun startEdgeScroll(scrollSpeed: Int) {
+                    stopEdgeScroll()
+                    val runnable = object : Runnable {
+                        override fun run() {
+                            if (!isDraggingImage) return
+                            scrollBy(0, scrollSpeed)
+                            // Recalculate drop offset after scroll
+                            val dx = dragTouchX.toInt() - totalPaddingLeft + scrollX
+                            val dy = dragTouchY.toInt() - totalPaddingTop + scrollY
+                            val l = layout
+                            if (l != null) {
+                                val line = l.getLineForVertical(dy)
+                                dragDropOffset = l.getOffsetForHorizontal(line, dx.toFloat())
+                            }
+                            invalidate()
+                            postDelayed(this, edgeScrollIntervalMs)
+                        }
+                    }
+                    autoScrollRunnable = runnable
+                    postDelayed(runnable, edgeScrollIntervalMs)
+                }
+
+                fun stopEdgeScroll() {
+                    autoScrollRunnable?.let { removeCallbacks(it) }
+                    autoScrollRunnable = null
+                }
+
+                fun evaluateEdgeScroll(touchY: Float) {
+                    val viewHeight = height
+                    if (viewHeight <= 0) return
+
+                    when {
+                        // Finger dragged ABOVE the view → scroll up
+                        touchY < 0 -> {
+                            val overflow = (-touchY).coerceAtMost(maxOverflowPx.toFloat())
+                            val ratio = overflow / maxOverflowPx
+                            val speed = -(ratio * edgeScrollMaxSpeed).toInt().coerceAtLeast(1)
+                            if (autoScrollRunnable == null) startEdgeScroll(speed)
+                        }
+                        // Finger dragged BELOW the view → scroll down
+                        touchY > viewHeight -> {
+                            val overflow = (touchY - viewHeight).coerceAtMost(maxOverflowPx.toFloat())
+                            val ratio = overflow / maxOverflowPx
+                            val speed = (ratio * edgeScrollMaxSpeed).toInt().coerceAtLeast(1)
+                            if (autoScrollRunnable == null) startEdgeScroll(speed)
+                        }
+                        // Finger within view bounds → no auto-scroll
+                        else -> stopEdgeScroll()
+                    }
+                }
+
+                fun resetDragState() {
+                    stopEdgeScroll()
+                    isDraggingImage = false
+                    dragImageSpan = null
+                    dragImageSource = null
+                    dragImageDrawable = null
+                    dragOriginalStart = -1
+                    dragOriginalEnd = -1
+                    dragTouchX = 0f
+                    dragTouchY = 0f
+                    dragDropOffset = -1
+                    invalidate()
+                }
+
+                private val dropIndicatorPaint = Paint().apply {
+                    color = indicatorColor.toArgb() // Use Compose theme color
+                    strokeWidth = 6f
+                    style = Paint.Style.STROKE
+                    strokeCap = Paint.Cap.ROUND
+                    isAntiAlias = true
+                }
+
+                /**
+                 * Snap a raw character offset to the nearest line boundary.
+                 * Since images are block-level (\n\uFFFC\n), we snap to line start/end
+                 * to avoid inserting an image in the middle of a text line.
+                 */
+                fun snapToLineBoundary(rawOffset: Int): Int {
+                    val l = layout ?: return rawOffset
+                    val t = text ?: return rawOffset
+                    val line = l.getLineForOffset(rawOffset)
+                    val lineStart = l.getLineStart(line)
+                    val lineEnd = l.getLineEnd(line)
+                    // If the line contains an ImageSpan, snap to lineEnd (after it)
+                    val lineSpans = t.getSpans(lineStart, lineEnd, ImageSpan::class.java)
+                    if (lineSpans.isNotEmpty()) {
+                        val spanEnd = t.getSpanEnd(lineSpans.first())
+                        // Snap after the image's trailing \n if possible
+                        return if (spanEnd < t.length && t[spanEnd] == '\n') spanEnd + 1 else spanEnd
+                    }
+                    // For text lines, snap to whichever boundary is closer
+                    return if (rawOffset - lineStart <= lineEnd - rawOffset) lineStart else lineEnd
+                }
+
+                fun performDrop(origStart: Int, origEnd: Int, rawDropOffset: Int) {
+                    val editable = text as? Editable ?: return
+                    val imageSource = dragImageSource ?: return
+                    val imageDrawable = dragImageDrawable ?: return
+
+                    val snappedDrop = snapToLineBoundary(rawDropOffset)
+
+                    // If dropping back onto original range, no-op
+                    if (snappedDrop in origStart..origEnd) return
+
+                    isSuppressingTextWatcher = true
+                    beginBatchEdit()
+                    try {
+                        val draggedLength = origEnd - origStart
+
+                        // Adjust drop offset if it's after the original position
+                        val adjustedDrop = if (snappedDrop > origEnd) {
+                            snappedDrop - draggedLength
+                        } else {
+                            snappedDrop
+                        }
+
+                        // Delete original image block
+                        editable.delete(origStart, origEnd)
+
+                        // Build insert text: ensure \n before and after the image
+                        val safeDrop = adjustedDrop.coerceIn(0, editable.length)
+                        val needLeadingNewline = safeDrop > 0 && editable[safeDrop - 1] != '\n'
+                        val needTrailingNewline = safeDrop < editable.length && editable[safeDrop] != '\n'
+
+                        val insertBuilder = StringBuilder()
+                        if (needLeadingNewline) insertBuilder.append('\n')
+                        insertBuilder.append('\uFFFC')
+                        if (needTrailingNewline) insertBuilder.append('\n')
+
+                        val insertText = insertBuilder.toString()
+                        editable.insert(safeDrop, insertText)
+
+                        // Find the \uFFFC position within the inserted text
+                        val uffcOffset = safeDrop + (if (needLeadingNewline) 1 else 0)
+                        val newSpanStart = uffcOffset
+                        val newSpanEnd = uffcOffset + 1
+
+                        // Attach new ImageSpan
+                        val newImageSpan = ImageSpan(imageDrawable, imageSource)
+                        editable.setSpan(
+                            newImageSpan, newSpanStart, newSpanEnd,
+                            Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+                        )
+                    } finally {
+                        endBatchEdit()
+                        isSuppressingTextWatcher = false
+                    }
+
+                    // Sync HTML state
+                    controller.onContentChanged?.invoke(controller.getHtml())
+
+                    // Clear focus after drop (consistent with image tap behavior)
+                    val imm = context.getSystemService(
+                        android.content.Context.INPUT_METHOD_SERVICE
+                    ) as android.view.inputmethod.InputMethodManager
+                    imm.hideSoftInputFromWindow(windowToken, 0)
+                    clearFocus()
+                }
+
+                override fun dispatchDraw(canvas: Canvas) {
+                    super.dispatchDraw(canvas)
+                    if (!isDraggingImage) return
+
+                    val l = layout ?: return
+                    val drawable = dragImageDrawable ?: return
+
+
+                    // 2. Draw drop indicator line at target position
+                    if (dragDropOffset >= 0 && dragDropOffset <= text.length) {
+                        val snapped = snapToLineBoundary(dragDropOffset)
+                        // Don't draw indicator if dropping back to original position
+                        if (snapped !in dragOriginalStart..dragOriginalEnd) {
+                            val line = l.getLineForOffset(snapped.coerceIn(0, text.length))
+                            val lineY = if (snapped == l.getLineStart(line)) {
+                                l.getLineTop(line)
+                            } else {
+                                l.getLineBottom(line)
+                            }
+                            val drawY = (lineY + totalPaddingTop - scrollY).toFloat()
+                            val leftX = totalPaddingLeft.toFloat()
+                            val rightX = (width - totalPaddingRight).toFloat()
+
+                            // Draw indicator line with rounded end circles
+                            canvas.drawLine(leftX, drawY, rightX, drawY, dropIndicatorPaint)
+                            val circlePaint = Paint(dropIndicatorPaint).apply {
+                                style = Paint.Style.FILL
+                            }
+                            canvas.drawCircle(leftX, drawY, 5f, circlePaint)
+                            canvas.drawCircle(rightX, drawY, 5f, circlePaint)
+                        }
+                    }
+
+                    // 3. Draw drag shadow (scaled-down image following finger)
+                    val dw = drawable.bounds.width()
+                    val dh = drawable.bounds.height()
+                    val shadowScale = 0.7f
+                    val scaledW = dw * shadowScale
+                    val scaledH = dh * shadowScale
+
+                    canvas.save()
+                    canvas.translate(
+                        dragTouchX - scaledW / 2,
+                        dragTouchY - scaledH - 20f // slightly above finger
+                    )
+                    canvas.scale(shadowScale, shadowScale)
+                    drawable.alpha = 180
+                    drawable.draw(canvas)
+                    drawable.alpha = 255
+                    canvas.restore()
+                }
+
                 override fun onSelectionChanged(selStart: Int, selEnd: Int) {
                     super.onSelectionChanged(selStart, selEnd)
+                    // Short-circuit during drag to prevent cursor-skip logic from interfering
+                    if (isDraggingImage) return
                     val t = text ?: return
                     val l = layout
                     if (l != null && selStart == selEnd) {
@@ -324,7 +562,7 @@ fun NativeRichTextEditor(
                         distanceX: Float,
                         distanceY: Float
                     ): Boolean {
-                        if (isImageLineTap) {
+                        if (isImageLineTap && !isDraggingImage) {
                             scrollBy(0, distanceY.toInt())
                             return true
                         }
@@ -348,11 +586,13 @@ fun NativeRichTextEditor(
                                 val endX = startX + span.drawable.bounds.width()
                                 if (x.toFloat() in startX..endX) {
                                     span.source?.let { src ->
+                                        val lineBottom = l.getLineBottom(line)
+                                        val imageTop = lineBottom - span.drawable.bounds.height()
                                         val rect = android.graphics.Rect(
                                             (startX + totalPaddingLeft - scrollX).toInt(),
-                                            l.getLineTop(line) + totalPaddingTop - scrollY,
+                                            imageTop + totalPaddingTop - scrollY,
                                             (endX + totalPaddingLeft - scrollX).toInt(),
-                                            l.getLineBottom(line) + totalPaddingTop - scrollY
+                                            lineBottom + totalPaddingTop - scrollY
                                         )
                                         controller.onImageClick?.invoke(src, rect)
                                         val imm = context.getSystemService(android.content.Context.INPUT_METHOD_SERVICE) as android.view.inputmethod.InputMethodManager
@@ -365,11 +605,99 @@ fun NativeRichTextEditor(
                         }
                         return false
                     }
+
+                    override fun onLongPress(e: android.view.MotionEvent) {
+                        // Detect long-press on an isolated image to start drag
+                        val x = e.x.toInt() - totalPaddingLeft + scrollX
+                        val y = e.y.toInt() - totalPaddingTop + scrollY
+                        val l = layout ?: return
+                        val line = l.getLineForVertical(y)
+                        val off = l.getOffsetForHorizontal(line, x.toFloat())
+
+                        val spans = text.getSpans(off, off, ImageSpan::class.java)
+                        if (spans.isEmpty()) return
+                        val span = spans.first()
+                        val spanStart = text.getSpanStart(span)
+                        val spanEnd = text.getSpanEnd(span)
+
+                        // Pixel-level hit test
+                        val startX = l.getPrimaryHorizontal(spanStart)
+                        val endX = startX + span.drawable.bounds.width()
+                        if (x.toFloat() !in startX..endX) return
+
+                        // Only drag isolated images (those on their own line)
+                        val t = text
+                        val isIsolated = (spanStart == 0 || t[spanStart - 1] == '\n') &&
+                                (spanEnd == t.length || t[spanEnd] == '\n')
+                        if (!isIsolated) return
+
+                        // Calculate full range including ONE surrounding newline (not both!)
+                        // This matches deleteImage() logic — only consume one side to avoid
+                        // merging adjacent text lines (e.g., "1\n￼\n2" → deleting both \n
+                        // would produce "12" instead of "1\n2")
+                        var fullStart = spanStart
+                        var fullEnd = spanEnd
+                        if (fullEnd < t.length && t[fullEnd] == '\n') {
+                            fullEnd++
+                        } else if (fullStart > 0 && t[fullStart - 1] == '\n') {
+                            fullStart--
+                        }
+
+                        // Enter drag mode
+                        isDraggingImage = true
+                        dragImageSpan = span
+                        dragImageSource = span.source
+                        dragImageDrawable = span.drawable
+                        dragOriginalStart = fullStart
+                        dragOriginalEnd = fullEnd
+                        dragTouchX = e.x
+                        dragTouchY = e.y
+                        dragDropOffset = -1
+                        isImageLineTap = false // Override scroll hijack
+
+                        performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+                        invalidate()
+                    }
                 })
                 
                 // Ensure touch events are not intercepted by Compose parents when scrolling
                 setOnTouchListener { v, event ->
-                    if (event.action == android.view.MotionEvent.ACTION_DOWN) {
+                    // ── Drag handling (highest priority) ──
+                    if (isDraggingImage) {
+                        when (event.action and MotionEvent.ACTION_MASK) {
+                            MotionEvent.ACTION_MOVE -> {
+                                dragTouchX = event.x
+                                dragTouchY = event.y
+                                // Calculate real-time drop offset
+                                val dx = event.x.toInt() - totalPaddingLeft + scrollX
+                                val dy = event.y.toInt() - totalPaddingTop + scrollY
+                                val l = layout
+                                if (l != null) {
+                                    val line = l.getLineForVertical(dy)
+                                    dragDropOffset = l.getOffsetForHorizontal(line, dx.toFloat())
+                                }
+                                // Evaluate edge auto-scrolling
+                                evaluateEdgeScroll(event.y)
+                                invalidate()
+                                return@setOnTouchListener true
+                            }
+                            MotionEvent.ACTION_UP -> {
+                                if (dragDropOffset >= 0) {
+                                    performDrop(dragOriginalStart, dragOriginalEnd, dragDropOffset)
+                                }
+                                resetDragState()
+                                return@setOnTouchListener true
+                            }
+                            MotionEvent.ACTION_CANCEL -> {
+                                resetDragState()
+                                return@setOnTouchListener true
+                            }
+                        }
+                        return@setOnTouchListener true
+                    }
+
+                    // ── Normal touch handling ──
+                    if (event.action == MotionEvent.ACTION_DOWN) {
                         val l = layout
                         if (l != null) {
                             val y = event.y.toInt() - totalPaddingTop + scrollY
@@ -391,9 +719,9 @@ fun NativeRichTextEditor(
                     
                     val consumed = gestureDetector.onTouchEvent(event)
                     v.parent?.requestDisallowInterceptTouchEvent(true)
-                    when (event.action and android.view.MotionEvent.ACTION_MASK) {
-                        android.view.MotionEvent.ACTION_UP,
-                        android.view.MotionEvent.ACTION_CANCEL -> {
+                    when (event.action and MotionEvent.ACTION_MASK) {
+                        MotionEvent.ACTION_UP,
+                        MotionEvent.ACTION_CANCEL -> {
                             v.parent?.requestDisallowInterceptTouchEvent(false)
                         }
                     }
@@ -402,7 +730,7 @@ fun NativeRichTextEditor(
                         return@setOnTouchListener true
                     }
                     
-                    if (event.action == android.view.MotionEvent.ACTION_UP && consumed) {
+                    if (event.action == MotionEvent.ACTION_UP && consumed) {
                         return@setOnTouchListener true
                     }
                     false
@@ -425,12 +753,13 @@ fun NativeRichTextEditor(
                                 val line = l.getLineForOffset(spanStart)
                                 val startX = l.getPrimaryHorizontal(spanStart)
                                 val endX = startX + span.drawable.bounds.width()
-                                
+                                val lineBottom = l.getLineBottom(line)
+                                val imageTop = lineBottom - span.drawable.bounds.height()
                                 val rect = android.graphics.Rect(
                                     (startX + totalPaddingLeft - scrollX).toInt(),
-                                    l.getLineTop(line) + totalPaddingTop - scrollY,
+                                    imageTop + totalPaddingTop - scrollY,
                                     (endX + totalPaddingLeft - scrollX).toInt(),
-                                    l.getLineBottom(line) + totalPaddingTop - scrollY
+                                    lineBottom + totalPaddingTop - scrollY
                                 )
                                 controller.onImageBoundsChanged?.invoke(rect)
                             }
@@ -450,6 +779,8 @@ fun NativeRichTextEditor(
                     override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
                     override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
                     override fun afterTextChanged(s: Editable?) {
+                        // Skip HTML sync during drag move operation to avoid intermediate states
+                        if (isSuppressingTextWatcher) return
                         onContentChanged(controller.getHtml())
                     }
                 })
