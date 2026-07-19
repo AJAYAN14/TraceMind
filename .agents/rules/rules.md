@@ -342,7 +342,7 @@ val authRepository = hiltEntryPoint.authRepository()
 
 ## 9. UI Rules（Jetpack Compose UI 规范）
 
-- 必须使用 Material 3（M3）
+- 禁止使用 Material 3（M3）默认色
 - 禁止随机颜色
 - spacing 统一使用：4 / 8 / 12 / 16 / 24 / 32
 - Composable 必须具备单一职责

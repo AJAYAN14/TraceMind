@@ -69,20 +69,6 @@ fun HomeScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val localBackdrop = rememberLayerBackdrop()
-    
-    var showRenameDialog by remember { mutableStateOf(false) }
-    var renameFolderId by remember { mutableStateOf("") }
-    var renameFolderName by remember { mutableStateOf("") }
-    
-    var showDeleteDialog by remember { mutableStateOf(false) }
-    var deleteFolderId by remember { mutableStateOf("") }
-    var deleteFolderName by remember { mutableStateOf("") }
-    
-    var showDeleteDiaryDialog by remember { mutableStateOf(false) }
-    var deleteDiaryId by remember { mutableStateOf("") }
-
-
-
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -191,8 +177,7 @@ fun HomeScreen(
                                 diary = firstDiary,
                                 onClick = { onDiaryClick(firstDiary.id) },
                                 onDeleteClick = {
-                                    deleteDiaryId = firstDiary.id
-                                    showDeleteDiaryDialog = true
+                                    viewModel.onEvent(HomeEvent.OnDeleteDiaryClick(firstDiary.id))
                                 }
                             )
                         }
@@ -227,14 +212,10 @@ fun HomeScreen(
                                         model = model,
                                         onClick = { onFolderClick(model.folder.id) },
                                         onRenameClick = {
-                                            renameFolderId = model.folder.id
-                                            renameFolderName = model.folder.name
-                                            showRenameDialog = true
+                                            viewModel.onEvent(HomeEvent.OnRenameFolderClick(model.folder.id, model.folder.name))
                                         },
                                         onDeleteClick = {
-                                            deleteFolderId = model.folder.id
-                                            deleteFolderName = model.folder.name
-                                            showDeleteDialog = true
+                                            viewModel.onEvent(HomeEvent.OnDeleteFolderClick(model.folder.id, model.folder.name))
                                         }
                                     )
                                 }
@@ -254,8 +235,7 @@ fun HomeScreen(
                                         diary = memory,
                                         onClick = { onDiaryClick(memory.id) },
                                         onDeleteClick = {
-                                            deleteDiaryId = memory.id
-                                            showDeleteDiaryDialog = true
+                                            viewModel.onEvent(HomeEvent.OnDeleteDiaryClick(memory.id))
                                         }
                                     )
                                 }
@@ -269,43 +249,32 @@ fun HomeScreen(
         }
 
         com.jian.tracemind.core.ui.components.LiquidInputDialog(
-            visible = showRenameDialog,
+            visible = uiState.renameFolderId != null,
             title = "重命名文件夹",
-            value = renameFolderName,
-            onValueChange = { renameFolderName = it },
+            value = uiState.renameFolderName,
+            onValueChange = { viewModel.onEvent(HomeEvent.OnRenameFolderNameChange(it)) },
             placeholder = "新文件夹名称",
             confirmText = "保存",
-            onConfirm = {
-                if (renameFolderName.isNotBlank()) {
-                    viewModel.renameFolder(renameFolderId, renameFolderName)
-                    showRenameDialog = false
-                }
-            },
-            onDismiss = { showRenameDialog = false },
+            onConfirm = { viewModel.onEvent(HomeEvent.OnRenameFolderConfirm) },
+            onDismiss = { viewModel.onEvent(HomeEvent.OnRenameFolderDismiss) },
             backdrop = localBackdrop
         )
         com.jian.tracemind.core.ui.components.LiquidConfirmDialog(
-            visible = showDeleteDialog,
+            visible = uiState.deleteFolderId != null,
             title = "删除文件夹",
-            text = "确定要删除“$deleteFolderName”吗？\n这将永久删除该文件夹及其内部所有的子文件夹和日记！该操作不可恢复。",
+            text = "确定要删除“${uiState.deleteFolderName}”吗？\n这将永久删除该文件夹及其内部所有的子文件夹和日记！该操作不可恢复。",
             confirmText = "删除",
-            onConfirm = {
-                viewModel.deleteFolder(deleteFolderId)
-                showDeleteDialog = false
-            },
-            onDismiss = { showDeleteDialog = false },
+            onConfirm = { viewModel.onEvent(HomeEvent.OnDeleteFolderConfirm) },
+            onDismiss = { viewModel.onEvent(HomeEvent.OnDeleteFolderDismiss) },
             backdrop = localBackdrop
         )
         com.jian.tracemind.core.ui.components.LiquidConfirmDialog(
-            visible = showDeleteDiaryDialog,
+            visible = uiState.deleteDiaryId != null,
             title = "删除日记",
             text = "确定要永久删除这篇日记吗？该操作不可恢复。",
             confirmText = "删除",
-            onConfirm = {
-                viewModel.deleteDiary(deleteDiaryId)
-                showDeleteDiaryDialog = false
-            },
-            onDismiss = { showDeleteDiaryDialog = false },
+            onConfirm = { viewModel.onEvent(HomeEvent.OnDeleteDiaryConfirm) },
+            onDismiss = { viewModel.onEvent(HomeEvent.OnDeleteDiaryDismiss) },
             backdrop = localBackdrop
         )
     }

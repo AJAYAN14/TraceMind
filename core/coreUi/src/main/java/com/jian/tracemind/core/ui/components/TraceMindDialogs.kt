@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -213,12 +214,14 @@ fun LiquidInputDialog(
         val accentColor = Color(0xFF00C4B5)
         val containerColor = if (isLightTheme) Color(0xFFFAFAFA).copy(0.6f) else Color(0xFF121212).copy(0.4f)
         val dimColor = if (isLightTheme) Color(0xFF29293A).copy(0.23f) else Color(0xFF121212).copy(0.56f)
+        val inputBackgroundColor = if (isLightTheme) Color.Black.copy(0.06f) else Color.White.copy(0.12f)
 
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .zIndex(100f)
                 .background(dimColor)
+                .imePadding()
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null,
@@ -286,13 +289,13 @@ fun LiquidInputDialog(
                             .padding(horizontal = 24.dp, vertical = 12.dp)
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(16.dp))
-                            .background(containerColor.copy(alpha = 0.3f))
+                            .background(inputBackgroundColor)
                             .padding(16.dp),
                         decorationBox = { innerTextField ->
                             if (value.isEmpty()) {
                                 BasicText(
                                     text = placeholder,
-                                    style = TextStyle(contentColor.copy(0.5f), 16.sp)
+                                    style = TextStyle(contentColor.copy(0.4f), 16.sp)
                                 )
                             }
                             innerTextField()
