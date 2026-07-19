@@ -74,6 +74,10 @@ fun EditorScreen(
     var showInfoDialog by remember { mutableStateOf(false) }
     var viewingImageUrl by remember { mutableStateOf<String?>(null) }
     
+    var showMoodPicker by remember { mutableStateOf(false) }
+    var showWeatherPicker by remember { mutableStateOf(false) }
+    var showTagsEditor by remember { mutableStateOf(false) }
+    
     data class SelectedImageInfo(val url: String, val rect: android.graphics.Rect)
     var selectedImageInfo by remember { mutableStateOf<SelectedImageInfo?>(null) }
     var imageToDelete by remember { mutableStateOf<String?>(null) }
@@ -355,6 +359,16 @@ fun EditorScreen(
                                     innerTextField()
                                 }
                             }
+                        )
+
+                        com.jian.tracemind.feature.editor.ui.components.EditorMetadataRow(
+                            mood = viewModel.noteMood.value,
+                            weather = viewModel.noteWeather.value,
+                            tags = viewModel.noteTags.value,
+                            onMoodClick = { showMoodPicker = true },
+                            onWeatherClick = { showWeatherPicker = true },
+                            onTagsClick = { showTagsEditor = true },
+                            contentColor = contentColor
                         )
                     }
                     
@@ -713,5 +727,118 @@ fun EditorScreen(
             confirmButtonColor = MaterialTheme.colorScheme.error,
             containerColor = if (isDarkTheme) Color(0xFF2C2C2C) else Color.White
         )
+
+        if (showMoodPicker) {
+            val moods = listOf("开心", "平静", "伤心", "生气", "焦虑", "疲惫", "兴奋", "浪漫")
+            ModalBottomSheet(
+                onDismissRequest = { showMoodPicker = false },
+                containerColor = backgroundColor
+            ) {
+                Text(
+                    text = "选择心情",
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    color = contentColor
+                )
+                LazyRow(
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 32.dp),
+                    contentPadding = PaddingValues(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(moods) { mood ->
+                        FilterChip(
+                            selected = viewModel.noteMood.value == mood,
+                            onClick = {
+                                viewModel.onEvent(EditorEvent.SetMood(mood))
+                                showMoodPicker = false
+                            },
+                            label = { Text(mood) },
+                            colors = FilterChipDefaults.filterChipColors(
+                                containerColor = contentColor.copy(alpha = 0.1f),
+                                labelColor = contentColor,
+                                selectedContainerColor = contentColor.copy(alpha = 0.3f),
+                                selectedLabelColor = contentColor
+                            )
+                        )
+                    }
+                }
+            }
+        }
+
+        if (showWeatherPicker) {
+            val weathers = listOf("晴天", "多云", "阴天", "雨天", "雪天", "大风", "雾霾")
+            ModalBottomSheet(
+                onDismissRequest = { showWeatherPicker = false },
+                containerColor = backgroundColor
+            ) {
+                Text(
+                    text = "选择天气",
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    color = contentColor
+                )
+                LazyRow(
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 32.dp),
+                    contentPadding = PaddingValues(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(weathers) { weather ->
+                        FilterChip(
+                            selected = viewModel.noteWeather.value == weather,
+                            onClick = {
+                                viewModel.onEvent(EditorEvent.SetWeather(weather))
+                                showWeatherPicker = false
+                            },
+                            label = { Text(weather) },
+                            colors = FilterChipDefaults.filterChipColors(
+                                containerColor = contentColor.copy(alpha = 0.1f),
+                                labelColor = contentColor,
+                                selectedContainerColor = contentColor.copy(alpha = 0.3f),
+                                selectedLabelColor = contentColor
+                            )
+                        )
+                    }
+                }
+            }
+        }
+
+        if (showTagsEditor) {
+            var tempTags by remember { mutableStateOf(viewModel.noteTags.value.joinToString(", ")) }
+            AlertDialog(
+                onDismissRequest = { showTagsEditor = false },
+                title = { Text(text = "编辑标签") },
+                text = {
+                    OutlinedTextField(
+                        value = tempTags,
+                        onValueChange = { tempTags = it },
+                        label = { Text("输入标签，以逗号分隔") },
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = contentColor,
+                            unfocusedTextColor = contentColor,
+                            focusedBorderColor = contentColor,
+                            unfocusedBorderColor = contentColor.copy(alpha = 0.5f)
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                },
+                confirmButton = {
+                    TextButton(onClick = {
+                        val newTags = tempTags.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+                        viewModel.onEvent(EditorEvent.SetTags(newTags))
+                        showTagsEditor = false
+                    }) {
+                        Text("确定", color = contentColor)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showTagsEditor = false }) {
+                        Text("取消", color = contentColor.copy(alpha = 0.7f))
+                    }
+                },
+                containerColor = backgroundColor,
+                titleContentColor = contentColor,
+                textContentColor = contentColor
+            )
+        }
     }
 }

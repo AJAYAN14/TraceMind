@@ -53,6 +53,15 @@ class EditorViewModel @Inject constructor(
     private val _noteTimestamp = mutableStateOf<Long?>(null)
     val noteTimestamp: State<Long?> = _noteTimestamp
 
+    private val _noteMood = mutableStateOf<String?>(null)
+    val noteMood: State<String?> = _noteMood
+
+    private val _noteWeather = mutableStateOf<String?>(null)
+    val noteWeather: State<String?> = _noteWeather
+
+    private val _noteTags = mutableStateOf<List<String>>(emptyList())
+    val noteTags: State<List<String>> = _noteTags
+
     private val _eventFlow = MutableSharedFlow<UiEvent>()
     val eventFlow = _eventFlow.asSharedFlow()
 
@@ -76,6 +85,9 @@ class EditorViewModel @Inject constructor(
                     folderId = diary.folderId
                     createdAt = diary.createdAt
                     _noteTimestamp.value = diary.updatedAt
+                    _noteMood.value = diary.mood
+                    _noteWeather.value = diary.weather
+                    _noteTags.value = diary.tags
                     
                     if (savedStateHandle.get<String>("title") == null) {
                         _noteTitle.value = noteTitle.value.copy(
@@ -121,9 +133,9 @@ class EditorViewModel @Inject constructor(
                 content = content,
                 createdAt = createdAt,
                 updatedAt = System.currentTimeMillis(),
-                mood = null,
-                weather = null,
-                tags = emptyList(),
+                mood = noteMood.value,
+                weather = noteWeather.value,
+                tags = noteTags.value,
                 images = emptyList(),
                 audioPath = null,
                 coverImage = null
@@ -212,6 +224,18 @@ class EditorViewModel @Inject constructor(
                 viewModelScope.launch {
                     _eventFlow.emit(UiEvent.ShowSnackbar("不支持提醒功能"))
                 }
+            }
+            is EditorEvent.SetMood -> {
+                _noteMood.value = event.mood
+                triggerAutoSave()
+            }
+            is EditorEvent.SetWeather -> {
+                _noteWeather.value = event.weather
+                triggerAutoSave()
+            }
+            is EditorEvent.SetTags -> {
+                _noteTags.value = event.tags
+                triggerAutoSave()
             }
         }
     }

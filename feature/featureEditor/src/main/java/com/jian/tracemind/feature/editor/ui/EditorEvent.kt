@@ -50,4 +50,10 @@ sealed class EditorEvent {
     data class SetReminder(
         val timestamp: Long?,
     ) : EditorEvent()
+
+    data class SetMood(val mood: String?) : EditorEvent()
+    
+    data class SetWeather(val weather: String?) : EditorEvent()
+    
+    data class SetTags(val tags: List<String>) : EditorEvent()
 }
