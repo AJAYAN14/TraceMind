@@ -30,7 +30,7 @@ fun TagCloudCard(tagCloudData: List<TagData>, modifier: Modifier = Modifier) {
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .background(Color.White)
+            .background(androidx.compose.material3.MaterialTheme.colorScheme.surface)
             .padding(16.dp)
     ) {
         FlowRow(
@@ -64,13 +64,13 @@ fun TagCloudCard(tagCloudData: List<TagData>, modifier: Modifier = Modifier) {
 
                 Row(
                     modifier = Modifier
-                        .border(1.dp, Color(0xFFE5E7EB), RoundedCornerShape(16.dp))
+                        .border(1.dp, androidx.compose.material3.MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(16.dp))
                         .padding(horizontal = 12.dp, vertical = 6.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
                         text = tag.label,
-                        color = Color(0xFF1A1C1E),
+                        color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                         fontSize = fontSize,
                         fontWeight = fontWeight
                     )
@@ -78,12 +78,12 @@ fun TagCloudCard(tagCloudData: List<TagData>, modifier: Modifier = Modifier) {
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(16.dp))
-                            .background(Color(0x1E5552E4))
+                            .background(androidx.compose.material3.MaterialTheme.colorScheme.primary.copy(alpha = 0.12f))
                             .padding(horizontal = 4.dp, vertical = 2.dp)
                     ) {
                         Text(
                             text = tag.count.toString(),
-                            color = Color(0xFF5552E4),
+                            color = androidx.compose.material3.MaterialTheme.colorScheme.primary,
                             fontSize = 9.sp,
                             fontWeight = FontWeight.SemiBold
                         )

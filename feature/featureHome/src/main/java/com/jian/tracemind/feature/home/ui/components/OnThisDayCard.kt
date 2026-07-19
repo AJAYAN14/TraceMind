@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -51,7 +52,7 @@ fun OnThisDayCard(diary: Diary, onClick: () -> Unit = {}, onDeleteClick: () -> U
     val yearsAgoText = if (yearsAgo > 0) "${yearsAgo}年前" else "今天"
     androidx.compose.material3.Surface(
         shape = RoundedCornerShape(24.dp),
-        color = Color.White,
+        color = MaterialTheme.colorScheme.surface,
         modifier = modifier.fillMaxWidth().traceShadow(borderRadius = 24.dp)
             .clip(RoundedCornerShape(24.dp))
             .combinedClickable(
@@ -69,7 +70,7 @@ fun OnThisDayCard(diary: Diary, onClick: () -> Unit = {}, onDeleteClick: () -> U
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(156.dp)
-                        .background(Color(0xFFF3F4F6)),
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
                     contentScale = ContentScale.Crop
                 )
             }
@@ -98,7 +99,7 @@ fun OnThisDayCard(diary: Diary, onClick: () -> Unit = {}, onDeleteClick: () -> U
                 }
                 Text(
                     text = subtitle,
-                    color = Color(0xFF9CA3AF),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 10.sp
                 )
             }
@@ -106,7 +107,7 @@ fun OnThisDayCard(diary: Diary, onClick: () -> Unit = {}, onDeleteClick: () -> U
             if (diary.title.isNotBlank()) {
                 Text(
                     text = diary.title,
-                    color = Color(0xFF1A1C1E),
+                    color = MaterialTheme.colorScheme.onSurface,
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,
                     lineHeight = 20.sp
@@ -115,7 +116,7 @@ fun OnThisDayCard(diary: Diary, onClick: () -> Unit = {}, onDeleteClick: () -> U
             }
             Text(
                 text = diary.content,
-                color = Color(0xFF6B7280),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 13.sp,
                 maxLines = 3,
                 overflow = TextOverflow.Ellipsis,

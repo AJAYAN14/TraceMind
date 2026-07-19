@@ -256,8 +256,8 @@ fun NativeRichTextEditor(
     onImageBoundsChanged: ((android.graphics.Rect) -> Unit)? = null,
     onImageClick: ((String, android.graphics.Rect) -> Unit)? = null,
     modifier: Modifier = Modifier,
-    textColor: Color = Color.Black,
-    indicatorColor: Color = Color(0xFF00C4B5),
+    textColor: Color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
+    indicatorColor: Color = androidx.compose.material3.MaterialTheme.colorScheme.primary,
     hint: String = ""
 ) {
     val context = LocalContext.current

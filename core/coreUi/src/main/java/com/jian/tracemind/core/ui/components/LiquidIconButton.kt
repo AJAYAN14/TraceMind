@@ -52,7 +52,7 @@ fun LiquidIconButton(
     modifier: Modifier = Modifier,
     size: Dp = 48f.dp,
     isInteractive: Boolean = true,
-    tint: Color = Color(0xFF00C4B5),
+    tint: Color = androidx.compose.material3.MaterialTheme.colorScheme.primary,
     surfaceColor: Color = Color.Unspecified,
     content: @Composable () -> Unit
 ) {

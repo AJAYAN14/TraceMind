@@ -41,9 +41,17 @@ import com.jian.tracemind.core.ui.components.SectionLabel
 import com.kyant.backdrop.backdrops.layerBackdrop
 import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 
+enum class ProfileThemeMode {
+    SYSTEM, LIGHT, DARK
+}
+
 @Composable
-fun ProfileScreen(innerPadding: PaddingValues, modifier: Modifier = Modifier) {
-    var isDarkMode by remember { mutableStateOf(false) }
+fun ProfileScreen(
+    innerPadding: PaddingValues, 
+    modifier: Modifier = Modifier,
+    themeMode: ProfileThemeMode = ProfileThemeMode.SYSTEM,
+    onThemeModeChange: (ProfileThemeMode) -> Unit = {}
+) {
     val localBackdrop = rememberLayerBackdrop()
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -52,7 +60,7 @@ fun ProfileScreen(innerPadding: PaddingValues, modifier: Modifier = Modifier) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFFF8F9FA))
+                .background(androidx.compose.material3.MaterialTheme.colorScheme.background)
                 .layerBackdrop(localBackdrop)
         )
 
@@ -76,12 +84,12 @@ fun ProfileScreen(innerPadding: PaddingValues, modifier: Modifier = Modifier) {
                     modifier = Modifier
                         .size(64.dp)
                         .clip(CircleShape)
-                        .background(Color(0xFF1A1C1E)),
+                        .background(androidx.compose.material3.MaterialTheme.colorScheme.onBackground),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
                         text = "A",
-                        color = Color.White,
+                        color = androidx.compose.material3.MaterialTheme.colorScheme.background,
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -90,13 +98,13 @@ fun ProfileScreen(innerPadding: PaddingValues, modifier: Modifier = Modifier) {
                 Column {
                     Text(
                         text = "TraceMind User",
-                        color = Color(0xFF1A1C1E),
+                        color = androidx.compose.material3.MaterialTheme.colorScheme.onBackground,
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
                         text = "ID: 10086",
-                        color = Color(0xFF9CA3AF),
+                        color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 14.sp
                     )
                 }
@@ -110,7 +118,7 @@ fun ProfileScreen(innerPadding: PaddingValues, modifier: Modifier = Modifier) {
             Surface(
                 modifier = Modifier.fillMaxWidth().traceShadow(borderRadius = 16.dp),
                 shape = RoundedCornerShape(16.dp),
-                color = Color.White
+                color = androidx.compose.material3.MaterialTheme.colorScheme.surface
             ) {
                 Row(
                     modifier = Modifier
@@ -124,13 +132,13 @@ fun ProfileScreen(innerPadding: PaddingValues, modifier: Modifier = Modifier) {
                             modifier = Modifier
                                 .size(40.dp)
                                 .clip(CircleShape)
-                                .background(Color(0xFFF3F4F6)),
+                                .background(androidx.compose.material3.MaterialTheme.colorScheme.surfaceVariant),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
-                                imageVector = if (isDarkMode) Icons.Default.DarkMode else Icons.Default.LightMode,
+                                imageVector = if (themeMode == ProfileThemeMode.DARK) Icons.Default.DarkMode else Icons.Default.LightMode,
                                 contentDescription = "Theme Icon",
-                                tint = Color(0xFF1A1C1E),
+                                tint = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
                                 modifier = Modifier.size(20.dp)
                             )
                         }
@@ -139,13 +147,15 @@ fun ProfileScreen(innerPadding: PaddingValues, modifier: Modifier = Modifier) {
                             text = "深色模式",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Medium,
-                            color = Color(0xFF1A1C1E)
+                            color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface
                         )
                     }
 
                     LiquidToggle(
-                        selected = { isDarkMode },
-                        onSelect = { isDarkMode = it },
+                        selected = { themeMode == ProfileThemeMode.DARK },
+                        onSelect = { isDark -> 
+                            onThemeModeChange(if (isDark) ProfileThemeMode.DARK else ProfileThemeMode.LIGHT) 
+                        },
                         backdrop = localBackdrop
                     )
                 }

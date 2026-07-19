@@ -83,3 +83,17 @@ object NoteColorPalette {
     val Light = LightNoteColors
     val Dark = DarkNoteColors
 }
+
+fun resolveNoteColor(rawColor: Color, isDarkTheme: Boolean): Color {
+    val lightIndex = LightNoteColors.indexOf(rawColor)
+    if (lightIndex != -1) {
+        return if (isDarkTheme) DarkNoteColors[lightIndex] else rawColor
+    }
+
+    val darkIndex = DarkNoteColors.indexOf(rawColor)
+    if (darkIndex != -1) {
+        return if (isDarkTheme) rawColor else LightNoteColors[darkIndex]
+    }
+
+    return rawColor
+}

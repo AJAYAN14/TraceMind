@@ -21,6 +21,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.collectAsState
+import androidx.compose.foundation.isSystemInDarkTheme
+import javax.inject.Inject
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -51,11 +54,22 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    @Inject
+    lateinit var themePreferences: com.jian.tracemind.core.data.preferences.ThemePreferences
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            TraceMindTheme {
+            val themeMode by themePreferences.themeMode.collectAsState()
+            val isSystemDark = isSystemInDarkTheme()
+            val darkTheme = when (themeMode) {
+                com.jian.tracemind.core.data.preferences.ThemeMode.DARK -> true
+                com.jian.tracemind.core.data.preferences.ThemeMode.LIGHT -> false
+                com.jian.tracemind.core.data.preferences.ThemeMode.SYSTEM -> isSystemDark
+            }
+            TraceMindTheme(darkTheme = darkTheme) {
                 val navController = rememberNavController()
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentRoute = navBackStackEntry?.destination?.route ?: AppRoute.Home.route
@@ -231,7 +245,23 @@ class MainActivity : ComponentActivity() {
                                 popEnterTransition = mainPopEnterTransition,
                                 popExitTransition = mainPopExitTransition
                             ) {
-                                ProfileScreen(innerPadding = stableMainPadding, modifier = Modifier.fillMaxSize())
+                                ProfileScreen(
+                                    innerPadding = stableMainPadding, 
+                                    modifier = Modifier.fillMaxSize(),
+                                    themeMode = when (themeMode) {
+                                        com.jian.tracemind.core.data.preferences.ThemeMode.DARK -> com.jian.tracemind.feature.profile.ui.ProfileThemeMode.DARK
+                                        com.jian.tracemind.core.data.preferences.ThemeMode.LIGHT -> com.jian.tracemind.feature.profile.ui.ProfileThemeMode.LIGHT
+                                        com.jian.tracemind.core.data.preferences.ThemeMode.SYSTEM -> com.jian.tracemind.feature.profile.ui.ProfileThemeMode.SYSTEM
+                                    },
+                                    onThemeModeChange = { 
+                                        val mapped = when (it) {
+                                            com.jian.tracemind.feature.profile.ui.ProfileThemeMode.DARK -> com.jian.tracemind.core.data.preferences.ThemeMode.DARK
+                                            com.jian.tracemind.feature.profile.ui.ProfileThemeMode.LIGHT -> com.jian.tracemind.core.data.preferences.ThemeMode.LIGHT
+                                            com.jian.tracemind.feature.profile.ui.ProfileThemeMode.SYSTEM -> com.jian.tracemind.core.data.preferences.ThemeMode.SYSTEM
+                                        }
+                                        themePreferences.setThemeMode(mapped) 
+                                    }
+                                )
                             }
                             composable(
                                 route = AppRoute.Editor.route,

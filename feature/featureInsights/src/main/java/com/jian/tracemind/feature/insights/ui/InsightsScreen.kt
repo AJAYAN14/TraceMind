@@ -40,7 +40,7 @@ fun InsightsScreen(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(Color(0xFFF8F9FA))
+            .background(androidx.compose.material3.MaterialTheme.colorScheme.background)
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
             Spacer(modifier = Modifier.height(innerPadding.calculateTopPadding()))
@@ -49,14 +49,14 @@ fun InsightsScreen(
                     Column {
                         Text(
                             text = "我的洞察",
-                            color = Color(0xFF1A1C1E),
+                            color = androidx.compose.material3.MaterialTheme.colorScheme.onBackground,
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold
                         )
                         Spacer(modifier = Modifier.height(2.dp))
                         Text(
                             text = "共 ${uiState.totalDiaries} 篇，总字数 ${uiState.totalWords}",
-                            color = Color.Gray,
+                            color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                             fontSize = 12.sp
                         )
                     }
@@ -69,7 +69,7 @@ fun InsightsScreen(
                     ) {
                         Text(
                             text = date,
-                            color = Color.White,
+                            color = androidx.compose.material3.MaterialTheme.colorScheme.onPrimary,
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Medium
                         )

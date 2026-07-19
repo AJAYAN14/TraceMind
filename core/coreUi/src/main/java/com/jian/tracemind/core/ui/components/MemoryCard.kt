@@ -20,6 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -46,7 +47,7 @@ fun MemoryCard(diary: Diary, onClick: () -> Unit = {}, onDeleteClick: () -> Unit
     val dateStr = formatter.format(Date(diary.createdAt))
     androidx.compose.material3.Surface(
         shape = RoundedCornerShape(24.dp),
-        color = Color.White,
+        color = MaterialTheme.colorScheme.surface,
         modifier = modifier.fillMaxWidth().traceShadow(borderRadius = 24.dp)
             .clip(RoundedCornerShape(24.dp))
             .combinedClickable(
@@ -62,7 +63,7 @@ fun MemoryCard(diary: Diary, onClick: () -> Unit = {}, onDeleteClick: () -> Unit
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = diary.title.ifBlank { diary.content.take(20) },
-                color = Color(0xFF1A1C1E),
+                color = MaterialTheme.colorScheme.onSurface,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
                 lineHeight = 20.sp
@@ -70,7 +71,7 @@ fun MemoryCard(diary: Diary, onClick: () -> Unit = {}, onDeleteClick: () -> Unit
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = diary.content,
-                color = Color(0xFF6B7280),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 12.sp,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
@@ -78,7 +79,7 @@ fun MemoryCard(diary: Diary, onClick: () -> Unit = {}, onDeleteClick: () -> Unit
             )
             Spacer(modifier = Modifier.height(8.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(text = dateStr, color = Color(0xFF9CA3AF), fontSize = 11.sp)
+                Text(text = dateStr, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 11.sp)
                 
                 val mood = diary.mood
                 if (mood != null) {
@@ -91,7 +92,7 @@ fun MemoryCard(diary: Diary, onClick: () -> Unit = {}, onDeleteClick: () -> Unit
                     Spacer(modifier = Modifier.width(10.dp))
                     Text(
                         text = weather,
-                        color = Color(0xFF9CA3AF),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 10.sp,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -107,7 +108,7 @@ fun MemoryCard(diary: Diary, onClick: () -> Unit = {}, onDeleteClick: () -> Unit
             modifier = Modifier
                 .size(60.dp)
                 .clip(RoundedCornerShape(12.dp))
-                .background(Color(0xFFF3F4F6)),
+                .background(MaterialTheme.colorScheme.surfaceVariant),
             contentScale = ContentScale.Crop
         )
         }

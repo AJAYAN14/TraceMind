@@ -45,6 +45,7 @@ import com.airbnb.lottie.compose.rememberLottieComposition
 import com.jian.tracemind.feature.home.R
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -72,7 +73,7 @@ fun HomeScreen(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(Color(0xFFF8F9FA))
+            .background(MaterialTheme.colorScheme.background)
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
             Spacer(modifier = Modifier.height(innerPadding.calculateTopPadding()))
@@ -83,12 +84,12 @@ fun HomeScreen(
                             modifier = Modifier
                                 .size(48.dp)
                                 .clip(CircleShape)
-                                .background(Color(0xFF1A1C1E)),
+                                .background(MaterialTheme.colorScheme.onSurface),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
                                 text = "A",
-                                color = Color.White,
+                                color = MaterialTheme.colorScheme.surface,
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold
                             )
@@ -97,12 +98,12 @@ fun HomeScreen(
                         Column {
                             Text(
                                 text = "早上好",
-                                color = Color(0xFF9CA3AF),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 fontSize = 10.sp
                             )
                             Text(
                                 text = "TraceMind",
-                                color = Color(0xFF1A1C1E),
+                                color = MaterialTheme.colorScheme.onBackground,
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold
                             )
@@ -117,7 +118,7 @@ fun HomeScreen(
                         Icon(
                             imageVector = Icons.Default.Search,
                             contentDescription = "Search",
-                            tint = Color.White,
+                            tint = MaterialTheme.colorScheme.onPrimary,
                             modifier = Modifier.size(24.dp)
                         )
                     }
@@ -150,7 +151,7 @@ fun HomeScreen(
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
                             text = "没有记录，一片空白~",
-                            color = Color(0xFF6B7280),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontSize = 15.sp,
                             fontWeight = FontWeight.Medium
                         )
@@ -196,7 +197,7 @@ fun HomeScreen(
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Text(
                                         text = "查看全部",
-                                        color = Color(0xFF5552E4),
+                                        color = Color(0xFF5552E4), // Brand color
                                         fontSize = 11.sp,
                                         fontWeight = FontWeight.SemiBold,
                                         modifier = Modifier.clickable { onFolderClick("") }

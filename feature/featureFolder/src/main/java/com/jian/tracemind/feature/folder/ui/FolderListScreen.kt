@@ -8,22 +8,20 @@ import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.jian.tracemind.core.ui.extensions.traceShadow
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.jian.tracemind.core.domain.model.Folder
 import com.jian.tracemind.core.ui.components.LiquidAppBar
-import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 
 @Composable
 fun FolderListScreen(
@@ -37,7 +35,7 @@ fun FolderListScreen(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(Color(0xFFF8F9FA))
+            .background(MaterialTheme.colorScheme.background)
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
             Spacer(modifier = Modifier.height(innerPadding.calculateTopPadding()))
@@ -46,9 +44,9 @@ fun FolderListScreen(
                 title = {
                     Text(
                         text = "所有文件夹",
-                        fontSize = 18.sp,
+                        fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF1A1C1E)
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                 },
                 centerTitle = true
@@ -88,8 +86,8 @@ fun AllDiariesBanner(onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(24.dp))
-            .background(Color(0xFFE0F7FA)) // light teal tint
+            .clip(RoundedCornerShape(16.dp))
+            .background(MaterialTheme.colorScheme.primaryContainer)
             .clickable(onClick = onClick)
             .padding(horizontal = 24.dp, vertical = 24.dp)
     ) {
@@ -100,12 +98,12 @@ fun AllDiariesBanner(onClick: () -> Unit) {
                 text = "全部日记",
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF00796B)
+                color = MaterialTheme.colorScheme.onPrimaryContainer
             )
             Text(
                 text = "查看所有未分类和已分类的内容",
                 fontSize = 12.sp,
-                color = Color(0xFF004D40),
+                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
                 modifier = Modifier.padding(top = 4.dp)
             )
         }
@@ -116,7 +114,7 @@ fun AllDiariesBanner(onClick: () -> Unit) {
 fun FolderGridItem(folder: Folder, onClick: () -> Unit) {
     androidx.compose.material3.Surface(
         shape = RoundedCornerShape(24.dp),
-        color = Color.White,
+        color = MaterialTheme.colorScheme.surface,
         modifier = Modifier.fillMaxWidth().height(120.dp).traceShadow(borderRadius = 24.dp)
     ) {
         Column(
@@ -128,7 +126,7 @@ fun FolderGridItem(folder: Folder, onClick: () -> Unit) {
             Spacer(modifier = Modifier.height(16.dp))
             Text(
                 text = folder.name,
-                color = Color(0xFF1A1C1E),
+                color = MaterialTheme.colorScheme.onSurface,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.SemiBold,
                 maxLines = 1

@@ -22,6 +22,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -41,7 +42,7 @@ fun FolderCard(
     var expanded by remember { mutableStateOf(false) }
     androidx.compose.material3.Surface(
         shape = RoundedCornerShape(24.dp),
-        color = Color.White,
+        color = MaterialTheme.colorScheme.surface,
         modifier = modifier.size(96.dp).traceShadow(borderRadius = 24.dp)
     ) {
         Column(
@@ -57,13 +58,13 @@ fun FolderCard(
             Spacer(modifier = Modifier.height(12.dp))
             Text(
                 text = model.folder.name,
-                color = Color(0xFF1A1C1E),
+                color = MaterialTheme.colorScheme.onSurface,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.SemiBold
             )
             Text(
                 text = "${model.diaryCount} 篇",
-                color = Color(0xFF9CA3AF),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 10.sp
             )
             

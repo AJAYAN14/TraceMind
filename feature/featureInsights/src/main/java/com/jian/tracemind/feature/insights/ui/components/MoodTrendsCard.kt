@@ -29,7 +29,7 @@ fun MoodTrendsCard(moodDataList: List<MoodData>, modifier: Modifier = Modifier) 
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .background(Color.White)
+            .background(androidx.compose.material3.MaterialTheme.colorScheme.surface)
             .padding(16.dp)
     ) {
         if (moodDataList.isEmpty()) {
@@ -92,7 +92,7 @@ fun MoodTrendsCard(moodDataList: List<MoodData>, modifier: Modifier = Modifier) 
                             .background(Color(moodItem.color))
                     )
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text(text = moodItem.mood, color = Color(0xFF6B7280), fontSize = 10.sp)
+                    Text(text = moodItem.mood, color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 10.sp)
                 }
             }
         }

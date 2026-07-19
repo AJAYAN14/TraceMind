@@ -69,7 +69,7 @@ fun HeatmapCard(heatmapData: Map<String, Int>, modifier: Modifier = Modifier) {
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .background(Color.White)
+            .background(androidx.compose.material3.MaterialTheme.colorScheme.surface)
             .padding(16.dp)
     ) {
         // Month Labels
@@ -91,7 +91,7 @@ fun HeatmapCard(heatmapData: Map<String, Int>, modifier: Modifier = Modifier) {
                 // Day Label
                 Text(
                     text = if (dayIndex % 2 == 0) dayLabel else "",
-                    color = Color(0xFF9CA3AF),
+                    color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 8.sp,
                     modifier = Modifier.width(18.dp),
                     textAlign = TextAlign.End
@@ -107,7 +107,7 @@ fun HeatmapCard(heatmapData: Map<String, Int>, modifier: Modifier = Modifier) {
                             .padding(end = 2.dp)
                             .size(11.dp)
                             .clip(RoundedCornerShape(2.dp))
-                            .background(Color(0xFF5552E4).copy(alpha = alpha))
+                            .background(androidx.compose.material3.MaterialTheme.colorScheme.primary.copy(alpha = alpha))
                     )
                 }
             }
@@ -121,7 +121,7 @@ fun HeatmapCard(heatmapData: Map<String, Int>, modifier: Modifier = Modifier) {
             horizontalArrangement = Arrangement.End,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(text = "少", color = Color(0xFF9CA3AF), fontSize = 8.sp)
+            Text(text = "少", color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 8.sp)
             Spacer(modifier = Modifier.width(4.dp))
             heatmapAlpha.forEach { alpha ->
                 Box(
@@ -129,10 +129,10 @@ fun HeatmapCard(heatmapData: Map<String, Int>, modifier: Modifier = Modifier) {
                         .padding(end = 4.dp)
                         .size(10.dp)
                         .clip(RoundedCornerShape(2.dp))
-                        .background(Color(0xFF5552E4).copy(alpha = alpha))
+                        .background(androidx.compose.material3.MaterialTheme.colorScheme.primary.copy(alpha = alpha))
                 )
             }
-            Text(text = "多", color = Color(0xFF9CA3AF), fontSize = 8.sp)
+            Text(text = "多", color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 8.sp)
         }
     }
 }

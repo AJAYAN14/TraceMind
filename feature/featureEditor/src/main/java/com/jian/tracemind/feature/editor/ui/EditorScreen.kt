@@ -126,14 +126,22 @@ fun EditorScreen(
         }
     )
 
-    val resolvedColorInt = viewModel.noteColor.value
-    val noteBackgroundAnimatable = remember { Animatable(Color(resolvedColorInt)) }
+    val rawColor = Color(viewModel.noteColor.value)
+    val resolvedColor = com.jian.tracemind.feature.editor.ui.theme.resolveNoteColor(rawColor, isDarkTheme)
+    val resolvedColorInt = resolvedColor.toArgb()
+    val noteBackgroundAnimatable = remember { Animatable(resolvedColor) }
     val backgroundColor = noteBackgroundAnimatable.value
 
     val contentColor = if (backgroundColor.luminance() < 0.5f) {
         Color.White
     } else {
         Color.Black
+    }
+    
+    val fabContainerColor = if (backgroundColor.luminance() < 0.5f) {
+        Color(0xFF2C2C2C)
+    } else {
+        Color.White
     }
 
     val noteColors = if (isDarkTheme) {
@@ -151,8 +159,8 @@ fun EditorScreen(
     val focusManager = androidx.compose.ui.platform.LocalFocusManager.current
 
     Box(modifier = modifier) {
-        LaunchedEffect(resolvedColorInt) {
-            noteBackgroundAnimatable.animateTo(Color(resolvedColorInt))
+        LaunchedEffect(resolvedColor) {
+            noteBackgroundAnimatable.animateTo(resolvedColor)
         }
 
         LaunchedEffect(isDarkTheme) {
@@ -220,14 +228,14 @@ fun EditorScreen(
                         FilledIconButton(
                             onClick = { showColorPicker = true },
                             colors = IconButtonDefaults.filledIconButtonColors(
-                                containerColor = Color.White,
-                                contentColor = Color.Black
+                                containerColor = fabContainerColor,
+                                contentColor = contentColor
                             )
                         ) {
                             Icon(
                                 imageVector = Icons.Rounded.Palette,
                                 contentDescription = "Change color",
-                                tint = Color.Black,
+                                tint = contentColor,
                                 modifier = Modifier.size(28.dp)
                             )
                         }
@@ -236,28 +244,28 @@ fun EditorScreen(
                                 showImageSourceDialog = true
                             },
                             colors = IconButtonDefaults.filledIconButtonColors(
-                                containerColor = Color.White,
-                                contentColor = Color.Black
+                                containerColor = fabContainerColor,
+                                contentColor = contentColor
                             )
                         ) {
                             Icon(
                                 imageVector = Icons.Rounded.Image,
                                 contentDescription = "Add image",
-                                tint = Color.Black,
+                                tint = contentColor,
                                 modifier = Modifier.size(28.dp)
                             )
                         }
                         FilledIconButton(
                             onClick = { showFormatToolbar = !showFormatToolbar },
                             colors = IconButtonDefaults.filledIconButtonColors(
-                                containerColor = Color.White,
-                                contentColor = Color.Black
+                                containerColor = fabContainerColor,
+                                contentColor = contentColor
                             )
                         ) {
                             Icon(
                                 imageVector = Icons.Rounded.TextFields,
                                 contentDescription = "Format text",
-                                tint = Color.Black,
+                                tint = contentColor,
                                 modifier = Modifier.size(28.dp)
                             )
                         }
@@ -266,14 +274,14 @@ fun EditorScreen(
                             FilledIconButton(
                                 onClick = { showMenu = true },
                                 colors = IconButtonDefaults.filledIconButtonColors(
-                                    containerColor = Color.White,
-                                    contentColor = Color.Black
+                                    containerColor = fabContainerColor,
+                                    contentColor = contentColor
                                 )
                             ) {
                                 Icon(
                                     imageVector = Icons.Rounded.MoreVert,
                                     contentDescription = "More options",
-                                    tint = Color.Black,
+                                    tint = contentColor,
                                     modifier = Modifier.size(28.dp)
                                 )
                             }
@@ -466,7 +474,7 @@ fun EditorScreen(
                                 val dpWidth = with(density) { info.rect.width().toDp() }
                                 val dpHeight = with(density) { info.rect.height().toDp() }
                                 
-                                val themeColor = Color(0xFF00C4B5)
+                                val themeColor = MaterialTheme.colorScheme.primary
                                 Box(
                                     modifier = Modifier
                                         .offset(x = dpX, y = dpY)
@@ -486,7 +494,7 @@ fun EditorScreen(
                                 ) {
                                     Surface(
                                         shape = androidx.compose.foundation.shape.CircleShape,
-                                        color = Color.White,
+                                        color = fabContainerColor,
                                         tonalElevation = 8.dp,
                                         shadowElevation = 8.dp
                                     ) {
@@ -498,7 +506,7 @@ fun EditorScreen(
                                                 viewingImageUrl = info.url
                                                 selectedImageInfo = null
                                             }) {
-                                                Icon(Icons.Rounded.AspectRatio, contentDescription = "View Image")
+                                                Icon(Icons.Rounded.AspectRatio, contentDescription = "View Image", tint = contentColor)
                                             }
                                             IconButton(onClick = {
                                                 try {
@@ -519,7 +527,7 @@ fun EditorScreen(
                                                 }
                                                 selectedImageInfo = null
                                             }) {
-                                                Icon(Icons.Rounded.ContentCopy, contentDescription = "Copy Image")
+                                                Icon(Icons.Rounded.ContentCopy, contentDescription = "Copy Image", tint = contentColor)
                                             }
                                             IconButton(onClick = {
                                                 try {
@@ -624,7 +632,7 @@ fun EditorScreen(
                 ) {
                     items(noteColors) { color ->
                         val colorInt = remember(color) { color.toArgb() }
-                        val isSelected = viewModel.noteColor.value == colorInt
+                        val isSelected = resolvedColorInt == colorInt
                         val scale by animateFloatAsState(
                             targetValue = if (isSelected) 1.2f else 1f,
                             animationSpec = spring(
@@ -814,7 +822,7 @@ fun EditorScreen(
             },
             backdrop = null,
             confirmButtonColor = MaterialTheme.colorScheme.error,
-            containerColor = if (isDarkTheme) Color(0xFF2C2C2C) else Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         )
 
         if (showMoodPicker) {

@@ -35,7 +35,7 @@ fun SearchScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(Color(0xFFF8F9FA))
+            .background(MaterialTheme.colorScheme.background)
             .padding(top = innerPadding.calculateTopPadding())
     ) {
         // Search Top Bar
@@ -49,7 +49,7 @@ fun SearchScreen(
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Back",
-                    tint = Color(0xFF1A1C1E)
+                    tint = MaterialTheme.colorScheme.onBackground
                 )
             }
             
@@ -59,12 +59,12 @@ fun SearchScreen(
                 modifier = Modifier
                     .weight(1f)
                     .padding(end = 8.dp),
-                placeholder = { Text("搜索标题、正文或标签...", color = Color(0xFF9CA3AF)) },
+                placeholder = { Text("搜索标题、正文或标签...", color = MaterialTheme.colorScheme.onSurfaceVariant) },
                 leadingIcon = {
                     Icon(
                         imageVector = Icons.Default.Search,
                         contentDescription = "Search Icon",
-                        tint = Color(0xFF9CA3AF)
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 },
                 trailingIcon = {
@@ -73,18 +73,18 @@ fun SearchScreen(
                             Icon(
                                 imageVector = Icons.Default.Clear,
                                 contentDescription = "Clear",
-                                tint = Color(0xFF9CA3AF)
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }
                 },
                 singleLine = true,
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = Color.White,
-                    unfocusedContainerColor = Color.White,
+                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
                     unfocusedBorderColor = Color.Transparent,
-                    focusedBorderColor = Color(0xFF5552E4),
-                    cursorColor = Color(0xFF5552E4)
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    cursorColor = MaterialTheme.colorScheme.primary
                 ),
                 shape = RoundedCornerShape(12.dp)
             )
@@ -95,19 +95,19 @@ fun SearchScreen(
             if (uiState.query.isBlank()) {
                 Text(
                     text = "输入关键词开始搜索",
-                    color = Color(0xFF9CA3AF),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 14.sp,
                     modifier = Modifier.align(Alignment.Center)
                 )
             } else if (uiState.isLoading) {
                 CircularProgressIndicator(
-                    color = Color(0xFF5552E4),
+                    color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.align(Alignment.Center)
                 )
             } else if (uiState.results.isEmpty()) {
                 Text(
                     text = "未找到相关日记",
-                    color = Color(0xFF9CA3AF),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 14.sp,
                     modifier = Modifier.align(Alignment.Center)
                 )
@@ -120,7 +120,7 @@ fun SearchScreen(
                     item {
                         Text(
                             text = "找到 ${uiState.results.size} 篇日记",
-                            color = Color(0xFF9CA3AF),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontSize = 12.sp,
                             modifier = Modifier.padding(bottom = 8.dp)
                         )

@@ -83,7 +83,7 @@ fun FolderScreen(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(Color(0xFFF8F9FA))
+            .background(MaterialTheme.colorScheme.background)
     ) {
         val backdrop = com.kyant.backdrop.backdrops.rememberLayerBackdrop()
 
@@ -99,13 +99,13 @@ fun FolderScreen(
                     com.jian.tracemind.core.ui.components.LiquidIconButton(
                         onClick = onNavigateBack,
                         backdrop = backdrop,
-                        surfaceColor = Color(0xFF00C4B5),
-                        tint = Color(0xFF00C4B5)
+                        surfaceColor = MaterialTheme.colorScheme.primary,
+                        tint = MaterialTheme.colorScheme.primary
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
-                            tint = Color.White,
+                            tint = MaterialTheme.colorScheme.onPrimary,
                             modifier = Modifier.size(24.dp)
                         )
                     }
@@ -121,8 +121,8 @@ fun FolderScreen(
                             placeholder = { Text("搜索日记...", fontSize = 14.sp) },
                             singleLine = true,
                             colors = TextFieldDefaults.colors(
-                                focusedContainerColor = Color.White,
-                                unfocusedContainerColor = Color.White,
+                                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
                                 focusedIndicatorColor = Color.Transparent,
                                 unfocusedIndicatorColor = Color.Transparent
                             ),
@@ -133,8 +133,8 @@ fun FolderScreen(
                         Text(
                             text = title,
                             fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFF1A1C1E),
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                             textAlign = androidx.compose.ui.text.style.TextAlign.Center
@@ -145,13 +145,13 @@ fun FolderScreen(
                     com.jian.tracemind.core.ui.components.LiquidIconButton(
                         onClick = { isSearchExpanded = !isSearchExpanded },
                         backdrop = backdrop,
-                        surfaceColor = Color(0xFF00C4B5),
-                        tint = Color(0xFF00C4B5)
+                        surfaceColor = MaterialTheme.colorScheme.primary,
+                        tint = MaterialTheme.colorScheme.primary
                     ) {
                         Icon(
                             imageVector = if (isSearchExpanded) Icons.Default.MoreVert else Icons.Default.Search,
                             contentDescription = "Search",
-                            tint = Color.White,
+                            tint = MaterialTheme.colorScheme.onPrimary,
                             modifier = Modifier.size(24.dp)
                         )
                     }
@@ -173,7 +173,7 @@ fun FolderScreen(
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(50))
-                            .background(if (isSelected) Color(0xFF1A1C1E) else Color.White)
+                            .background(if (isSelected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.surface)
                             .clickable { viewModel.onChipChanged(chip) }
                             .padding(horizontal = 12.dp, vertical = 6.dp),
                         contentAlignment = Alignment.Center
@@ -182,7 +182,7 @@ fun FolderScreen(
                             text = chip,
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Medium,
-                            color = if (isSelected) Color.White else Color(0xFF6B7280)
+                            color = if (isSelected) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -191,7 +191,7 @@ fun FolderScreen(
             Text(
                 text = "共 ${uiState.diaries.size} 篇",
                 fontSize = 11.sp,
-                color = Color(0xFF9CA3AF),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 12.dp)
             )
 
@@ -207,16 +207,16 @@ fun FolderScreen(
                     start = 20.dp,
                     end = 20.dp,
                     top = 0.dp,
-                    bottom = innerPadding.calculateBottomPadding() + 80.dp // leave space for bottom nav and FAB
+                    bottom = innerPadding.calculateBottomPadding() + 80.dp
                 )
             ) {
                 if (uiState.subFolders.isNotEmpty()) {
                     item {
                         Text(
-                            text = "子文件夹",
+                            text = "文件夹",
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color(0xFF1A1C1E),
+                            color = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.padding(bottom = 12.dp)
                         )
                     }
@@ -261,7 +261,7 @@ fun FolderScreen(
                             text = "日记",
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color(0xFF1A1C1E),
+                            color = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.padding(bottom = 12.dp)
                         )
                     }
@@ -272,7 +272,6 @@ fun FolderScreen(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        // Col 1
                         Column(
                             modifier = Modifier.weight(1f),
                             verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -285,11 +284,10 @@ fun FolderScreen(
                                 )
                             }
                         }
-                        // Col 2
                         Column(
                             modifier = Modifier
                                 .weight(1f)
-                                .padding(top = 20.dp), // offset second column
+                                .padding(top = 20.dp),
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
                             col2.forEach { diary ->
@@ -319,13 +317,12 @@ fun DiaryCardItem(
     val formatter = remember { SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()) }
     val dateStr = formatter.format(Date(diary.createdAt))
 
-    // Determine cover image height
     val imgH = if (diary.coverImage != null) 160 else 0
 
     Box {
-        androidx.compose.material3.Surface(
+        Surface(
             shape = RoundedCornerShape(24.dp),
-            color = Color.White,
+            color = MaterialTheme.colorScheme.surface,
             modifier = Modifier.fillMaxWidth().traceShadow(borderRadius = 24.dp)
         ) {
             Column(
@@ -340,7 +337,7 @@ fun DiaryCardItem(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(imgH.dp)
-                            .background(Color(0xFFF3F4F6))
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
                     ) {
                         AsyncImage(
                             model = diary.coverImage,
@@ -355,7 +352,7 @@ fun DiaryCardItem(
                         text = diary.title.ifBlank { diary.content.take(20) }, // Use content snippet if title empty
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF1A1C1E),
+                        color = MaterialTheme.colorScheme.onSurface,
                         lineHeight = 16.sp,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis
@@ -365,7 +362,7 @@ fun DiaryCardItem(
                         Text(
                             text = dateStr,
                             fontSize = 10.sp,
-                            color = Color(0xFF9CA3AF)
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         
