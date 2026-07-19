@@ -35,6 +35,8 @@ class NativeRichTextEditorController {
     private var initialCoroutineScope: CoroutineScope? = null
     var onContentChanged: ((String) -> Unit)? = null
     var onImageClick: ((String, android.graphics.Rect) -> Unit)? = null
+    var onImageBoundsChanged: ((android.graphics.Rect) -> Unit)? = null
+    var selectedImageUrl: String? = null
 
     internal fun init(html: String?, scope: CoroutineScope) {
         initialHtml = html
@@ -72,13 +74,23 @@ class NativeRichTextEditorController {
                         if (bitmap.height * scale > maxHeight) {
                             scale = maxHeight.toFloat() / bitmap.height
                         }
+                        if (scale > 1f) scale = 1f // 防止将小图放大
                         
                         val finalWidth = (bitmap.width * scale).toInt().coerceAtLeast(1)
                         val finalHeight = (bitmap.height * scale).toInt().coerceAtLeast(1)
                         
-                        val scaledDrawable = BitmapDrawable(context.resources, Bitmap.createScaledBitmap(bitmap, finalWidth, finalHeight, true))
-                        scaledDrawable.setBounds(0, 0, finalWidth, finalHeight)
-                        drawable.drawable = scaledDrawable
+                        val scaledBitmap = if (finalWidth == bitmap.width && finalHeight == bitmap.height) {
+                            bitmap.copy(bitmap.config ?: Bitmap.Config.ARGB_8888, true)
+                        } else {
+                            Bitmap.createScaledBitmap(bitmap, finalWidth, finalHeight, true)
+                        }
+                        scaledBitmap.density = context.resources.displayMetrics.densityDpi
+                        
+                        val roundedDrawable = androidx.core.graphics.drawable.RoundedBitmapDrawableFactory.create(context.resources, scaledBitmap)
+                        roundedDrawable.cornerRadius = 12f * context.resources.displayMetrics.density
+                        roundedDrawable.setAntiAlias(true)
+                        roundedDrawable.setBounds(0, 0, finalWidth, finalHeight)
+                        drawable.drawable = roundedDrawable
                         drawable.setBounds(0, 0, finalWidth, finalHeight)
                         
                         // Force redraw
@@ -151,14 +163,24 @@ class NativeRichTextEditorController {
                     if (bitmap.height * scale > maxHeight) {
                         scale = maxHeight.toFloat() / bitmap.height
                     }
+                    if (scale > 1f) scale = 1f // 防止将小图放大
                     
                     val finalWidth = (bitmap.width * scale).toInt().coerceAtLeast(1)
                     val finalHeight = (bitmap.height * scale).toInt().coerceAtLeast(1)
                     
-                    val scaledDrawable = BitmapDrawable(context.resources, Bitmap.createScaledBitmap(bitmap, finalWidth, finalHeight, true))
-                    scaledDrawable.setBounds(0, 0, finalWidth, finalHeight)
+                    val scaledBitmap = if (finalWidth == bitmap.width && finalHeight == bitmap.height) {
+                        bitmap.copy(bitmap.config ?: Bitmap.Config.ARGB_8888, true)
+                    } else {
+                        Bitmap.createScaledBitmap(bitmap, finalWidth, finalHeight, true)
+                    }
+                    scaledBitmap.density = context.resources.displayMetrics.densityDpi
                     
-                    val imageSpan = ImageSpan(scaledDrawable, source)
+                    val roundedDrawable = androidx.core.graphics.drawable.RoundedBitmapDrawableFactory.create(context.resources, scaledBitmap)
+                    roundedDrawable.cornerRadius = 12f * context.resources.displayMetrics.density
+                    roundedDrawable.setAntiAlias(true)
+                    roundedDrawable.setBounds(0, 0, finalWidth, finalHeight)
+                    
+                    val imageSpan = ImageSpan(roundedDrawable, source)
                     
                     withContext(Dispatchers.Main) {
                         view.text.setSpan(imageSpan, imageStart, imageEnd, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
@@ -166,6 +188,25 @@ class NativeRichTextEditorController {
                     }
                 }
             }
+        }
+    }
+    fun deleteImage(url: String) {
+        val view = editText ?: return
+        val t = view.text as? Editable ?: return
+        val spans = t.getSpans(0, t.length, android.text.style.ImageSpan::class.java)
+        val span = spans.find { it.source == url }
+        if (span != null) {
+            var start = t.getSpanStart(span)
+            var end = t.getSpanEnd(span)
+            
+            if (end < t.length && t[end] == '\n') {
+                end += 1
+            } else if (start > 0 && t[start - 1] == '\n') {
+                start -= 1
+            }
+            
+            t.delete(start, end)
+            onContentChanged?.invoke(getHtml())
         }
     }
 }
@@ -200,6 +241,7 @@ fun NativeRichTextEditor(
     initialHtml: String,
     coroutineScope: CoroutineScope,
     onContentChanged: (String) -> Unit,
+    onImageBoundsChanged: ((android.graphics.Rect) -> Unit)? = null,
     onImageClick: ((String, android.graphics.Rect) -> Unit)? = null,
     modifier: Modifier = Modifier,
     textColor: Color = Color.Black,
@@ -210,7 +252,46 @@ fun NativeRichTextEditor(
     AndroidView(
         modifier = modifier,
         factory = { ctx ->
-            EditText(ctx).apply {
+            object : EditText(ctx) {
+                var lastSelStart = -1
+                override fun onSelectionChanged(selStart: Int, selEnd: Int) {
+                    super.onSelectionChanged(selStart, selEnd)
+                    val t = text ?: return
+                    val l = layout
+                    if (l != null && selStart == selEnd) {
+                        val line = l.getLineForOffset(selStart)
+                        val lineStart = l.getLineStart(line)
+                        val lineEnd = l.getLineEnd(line)
+                        
+                        val spans = t.getSpans(lineStart, lineEnd, android.text.style.ImageSpan::class.java)
+                        if (spans.isNotEmpty()) {
+                            val span = spans.first()
+                            val start = t.getSpanStart(span)
+                            val end = t.getSpanEnd(span)
+                            
+                            val isIsolated = (start == 0 || t[start - 1] == '\n') && (end == t.length || t[end] == '\n')
+                            
+                            if (isIsolated) {
+                                val isArrowKey = lastSelStart != -1 && (lastSelStart - selStart == 1 || lastSelStart - selStart == -1)
+                                val pushDown = if (isArrowKey) {
+                                    selStart > lastSelStart
+                                } else {
+                                    selStart >= end
+                                }
+                                
+                                val target = if (pushDown) end + 1 else start - 1
+                                val safeOffset = target.coerceIn(0, t.length)
+                                
+                                if (safeOffset != selStart) {
+                                    post { setSelection(safeOffset) }
+                                    return
+                                }
+                            }
+                        }
+                    }
+                    lastSelStart = selStart
+                }
+            }.apply {
                 layoutParams = ViewGroup.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT,
                     ViewGroup.LayoutParams.MATCH_PARENT
@@ -226,7 +307,22 @@ fun NativeRichTextEditor(
                 isScrollContainer = true
                 isSingleLine = false
                 
+                var isImageLineTap = false
+                
                 val gestureDetector = android.view.GestureDetector(ctx, object : android.view.GestureDetector.SimpleOnGestureListener() {
+                    override fun onScroll(
+                        e1: android.view.MotionEvent?,
+                        e2: android.view.MotionEvent,
+                        distanceX: Float,
+                        distanceY: Float
+                    ): Boolean {
+                        if (isImageLineTap) {
+                            scrollBy(0, distanceY.toInt())
+                            return true
+                        }
+                        return false
+                    }
+                    
                     override fun onSingleTapUp(e: android.view.MotionEvent): Boolean {
                         val x = e.x.toInt() - totalPaddingLeft + scrollX
                         val y = e.y.toInt() - totalPaddingTop + scrollY
@@ -251,6 +347,9 @@ fun NativeRichTextEditor(
                                             l.getLineBottom(line) + totalPaddingTop - scrollY
                                         )
                                         controller.onImageClick?.invoke(src, rect)
+                                        val imm = context.getSystemService(android.content.Context.INPUT_METHOD_SERVICE) as android.view.inputmethod.InputMethodManager
+                                        imm.hideSoftInputFromWindow(windowToken, 0)
+                                        clearFocus()
                                         return true
                                     }
                                 }
@@ -262,7 +361,27 @@ fun NativeRichTextEditor(
                 
                 // Ensure touch events are not intercepted by Compose parents when scrolling
                 setOnTouchListener { v, event ->
-                    gestureDetector.onTouchEvent(event)
+                    if (event.action == android.view.MotionEvent.ACTION_DOWN) {
+                        val l = layout
+                        if (l != null) {
+                            val y = event.y.toInt() - totalPaddingTop + scrollY
+                            val line = l.getLineForVertical(y)
+                            val lineStart = l.getLineStart(line)
+                            val lineEnd = l.getLineEnd(line)
+                            val spans = text.getSpans(lineStart, lineEnd, android.text.style.ImageSpan::class.java)
+                            if (spans.isNotEmpty()) {
+                                val span = spans.first()
+                                val start = text.getSpanStart(span)
+                                val end = text.getSpanEnd(span)
+                                val isIsolated = (start == 0 || text[start - 1] == '\n') && (end == text.length || text[end] == '\n')
+                                isImageLineTap = isIsolated
+                            } else {
+                                isImageLineTap = false
+                            }
+                        }
+                    }
+                    
+                    val consumed = gestureDetector.onTouchEvent(event)
                     v.parent?.requestDisallowInterceptTouchEvent(true)
                     when (event.action and android.view.MotionEvent.ACTION_MASK) {
                         android.view.MotionEvent.ACTION_UP,
@@ -270,13 +389,54 @@ fun NativeRichTextEditor(
                             v.parent?.requestDisallowInterceptTouchEvent(false)
                         }
                     }
+                    
+                    if (isImageLineTap) {
+                        return@setOnTouchListener true
+                    }
+                    
+                    if (event.action == android.view.MotionEvent.ACTION_UP && consumed) {
+                        return@setOnTouchListener true
+                    }
                     false
                 }
                 
                 controller.editText = this
                 controller.onContentChanged = onContentChanged
                 controller.onImageClick = onImageClick
+                controller.onImageBoundsChanged = onImageBoundsChanged
                 controller.init(initialHtml, coroutineScope)
+                
+                val updateSelectedImageBounds = {
+                    controller.selectedImageUrl?.let { url ->
+                        val spans = text.getSpans(0, text.length, android.text.style.ImageSpan::class.java)
+                        val span = spans.find { it.source == url }
+                        if (span != null) {
+                            val l = layout
+                            if (l != null) {
+                                val spanStart = text.getSpanStart(span)
+                                val line = l.getLineForOffset(spanStart)
+                                val startX = l.getPrimaryHorizontal(spanStart)
+                                val endX = startX + span.drawable.bounds.width()
+                                
+                                val rect = android.graphics.Rect(
+                                    (startX + totalPaddingLeft - scrollX).toInt(),
+                                    l.getLineTop(line) + totalPaddingTop - scrollY,
+                                    (endX + totalPaddingLeft - scrollX).toInt(),
+                                    l.getLineBottom(line) + totalPaddingTop - scrollY
+                                )
+                                controller.onImageBoundsChanged?.invoke(rect)
+                            }
+                        }
+                    }
+                }
+
+                viewTreeObserver.addOnGlobalLayoutListener {
+                    updateSelectedImageBounds()
+                }
+                
+                viewTreeObserver.addOnScrollChangedListener {
+                    updateSelectedImageBounds()
+                }
                 
                 addTextChangedListener(object: android.text.TextWatcher {
                     override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}

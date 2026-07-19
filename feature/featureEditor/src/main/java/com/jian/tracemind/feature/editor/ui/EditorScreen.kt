@@ -46,6 +46,8 @@ import com.jian.tracemind.feature.editor.ui.components.FormatToolbar
 import com.jian.tracemind.feature.editor.ui.theme.NoteColorPalette
 import com.kyant.backdrop.backdrops.LayerBackdrop
 import com.kyant.backdrop.backdrops.rememberLayerBackdrop
+import com.kyant.backdrop.backdrops.layerBackdrop
+import com.jian.tracemind.core.ui.components.LiquidConfirmDialog
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -71,6 +73,10 @@ fun EditorScreen(
     var showMenu by remember { mutableStateOf(false) }
     var showInfoDialog by remember { mutableStateOf(false) }
     var viewingImageUrl by remember { mutableStateOf<String?>(null) }
+    
+    data class SelectedImageInfo(val url: String, val rect: android.graphics.Rect)
+    var selectedImageInfo by remember { mutableStateOf<SelectedImageInfo?>(null) }
+    var imageToDelete by remember { mutableStateOf<String?>(null) }
 
     val editorController = com.jian.tracemind.feature.editor.ui.components.rememberNativeRichTextEditorController()
 
@@ -118,6 +124,8 @@ fun EditorScreen(
 
     var showColorPicker by remember { mutableStateOf(false) }
     var showFormatToolbar by remember { mutableStateOf(false) }
+
+    val focusManager = androidx.compose.ui.platform.LocalFocusManager.current
 
     Box(modifier = modifier) {
         LaunchedEffect(resolvedColorInt) {
@@ -350,23 +358,141 @@ fun EditorScreen(
                     
                     Spacer(modifier = Modifier.height(8.dp))
                     
-                    com.jian.tracemind.feature.editor.ui.components.NativeRichTextEditor(
-                        controller = editorController,
-                        initialHtml = contentState.text,
-                        coroutineScope = scope,
-                        onContentChanged = { html ->
-                            viewModel.onEvent(EditorEvent.EnteredContent(html))
-                        },
-                        onImageClick = { imageUrl ->
-                            viewingImageUrl = imageUrl
-                        },
+                    Box(
                         modifier = Modifier
                             .fillMaxWidth()
                             .weight(1f)
-                            .padding(horizontal = 16.dp),
-                        textColor = contentColor,
-                        hint = contentState.hint
-                    )
+                            .padding(horizontal = 16.dp)
+                    ) {
+                        com.jian.tracemind.feature.editor.ui.components.NativeRichTextEditor(
+                            controller = editorController,
+                            initialHtml = contentState.text,
+                            coroutineScope = scope,
+                            onContentChanged = { html ->
+                                viewModel.onEvent(EditorEvent.EnteredContent(html))
+                            },
+                            onImageBoundsChanged = { rect ->
+                                selectedImageInfo?.let { info ->
+                                    if (info.url == editorController.selectedImageUrl) {
+                                        selectedImageInfo = info.copy(rect = rect)
+                                    }
+                                }
+                            },
+                            onImageClick = { url, rect ->
+                                selectedImageInfo = SelectedImageInfo(url, rect)
+                                editorController.selectedImageUrl = url
+                                focusManager.clearFocus()
+                            },
+                            modifier = Modifier.fillMaxSize(),
+                            textColor = contentColor,
+                            hint = contentState.hint
+                        )
+                        
+                        selectedImageInfo?.let { info ->
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .clickable(
+                                        interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
+                                        indication = null
+                                    ) {
+                                        selectedImageInfo = null
+                                        editorController.selectedImageUrl = null
+                                    }
+                            ) {
+                                val density = androidx.compose.ui.platform.LocalDensity.current
+                                val dpX = with(density) { info.rect.left.toDp() }
+                                val dpY = with(density) { info.rect.top.toDp() }
+                                val dpWidth = with(density) { info.rect.width().toDp() }
+                                val dpHeight = with(density) { info.rect.height().toDp() }
+                                
+                                Box(
+                                    modifier = Modifier
+                                        .offset(x = dpX, y = dpY)
+                                        .size(width = dpWidth, height = dpHeight)
+                                        .border(2.dp, contentColor.copy(alpha = 0.5f), androidx.compose.foundation.shape.RoundedCornerShape(8.dp))
+                                        .clip(androidx.compose.foundation.shape.RoundedCornerShape(8.dp))
+                                        .background(contentColor.copy(alpha = 0.2f))
+                                )
+                                
+                                androidx.compose.ui.window.Popup(
+                                    alignment = Alignment.TopStart,
+                                    offset = androidx.compose.ui.unit.IntOffset(
+                                        x = info.rect.centerX() - with(density) { 75.dp.roundToPx() }, // Approximate half width of menu
+                                        y = info.rect.top - with(density) { 60.dp.roundToPx() } // Above the image
+                                    ),
+                                    onDismissRequest = { selectedImageInfo = null }
+                                ) {
+                                    Surface(
+                                        shape = androidx.compose.foundation.shape.CircleShape,
+                                        color = MaterialTheme.colorScheme.surface,
+                                        tonalElevation = 8.dp,
+                                        shadowElevation = 8.dp
+                                    ) {
+                                        Row(
+                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            IconButton(onClick = {
+                                                viewingImageUrl = info.url
+                                                selectedImageInfo = null
+                                            }) {
+                                                Icon(Icons.Default.Fullscreen, contentDescription = "View Image")
+                                            }
+                                            IconButton(onClick = {
+                                                try {
+                                                    val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                                                    val file = java.io.File(info.url)
+                                                    val uri = androidx.core.content.FileProvider.getUriForFile(
+                                                        context,
+                                                        "${context.packageName}.fileprovider",
+                                                        file
+                                                    )
+                                                    val clip = android.content.ClipData.newUri(context.contentResolver, "Image", uri)
+                                                    clipboard.setPrimaryClip(clip)
+                                                    scope.launch {
+                                                        snackbarHostState.showSnackbar("已复制到剪切板")
+                                                    }
+                                                } catch (e: Exception) {
+                                                    e.printStackTrace()
+                                                }
+                                                selectedImageInfo = null
+                                            }) {
+                                                Icon(Icons.Default.ContentCopy, contentDescription = "Copy Image")
+                                            }
+                                            IconButton(onClick = {
+                                                try {
+                                                    val file = java.io.File(info.url)
+                                                    val uri = androidx.core.content.FileProvider.getUriForFile(
+                                                        context,
+                                                        "${context.packageName}.fileprovider",
+                                                        file
+                                                    )
+                                                    val shareIntent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                                                        type = "image/*"
+                                                        putExtra(android.content.Intent.EXTRA_STREAM, uri)
+                                                        addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                                    }
+                                                    context.startActivity(android.content.Intent.createChooser(shareIntent, "Share Image"))
+                                                } catch (e: Exception) {
+                                                    e.printStackTrace()
+                                                }
+                                                selectedImageInfo = null
+                                            }) {
+                                                Icon(Icons.Default.Share, contentDescription = "Share Image")
+                                            }
+                                            IconButton(onClick = {
+                                                imageToDelete = info.url
+                                                selectedImageInfo = null
+                                            }) {
+                                                Icon(Icons.Default.Delete, contentDescription = "Delete Image", tint = MaterialTheme.colorScheme.error)
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -565,5 +691,25 @@ fun EditorScreen(
                 }
             )
         }
+        
+        LiquidConfirmDialog(
+            visible = imageToDelete != null,
+            title = "删除图片",
+            text = "确定要删除这张图片吗？该操作不可恢复。",
+            confirmText = "删除",
+            dismissText = "取消",
+            onConfirm = {
+                imageToDelete?.let { url ->
+                    editorController.deleteImage(url)
+                }
+                imageToDelete = null
+            },
+            onDismiss = {
+                imageToDelete = null
+            },
+            backdrop = null,
+            confirmButtonColor = MaterialTheme.colorScheme.error,
+            containerColor = if (isDarkTheme) Color(0xFF2C2C2C) else Color.White
+        )
     }
 }

@@ -54,7 +54,9 @@ fun LiquidConfirmDialog(
     dismissText: String = "取消",
     onConfirm: () -> Unit,
     onDismiss: () -> Unit,
-    backdrop: Backdrop? = null
+    backdrop: Backdrop? = null,
+    confirmButtonColor: Color = Color(0xFF00C4B5),
+    containerColor: Color? = null
 ) {
     AnimatedVisibility(
         visible = visible,
@@ -63,8 +65,8 @@ fun LiquidConfirmDialog(
     ) {
         val isLightTheme = !isSystemInDarkTheme()
         val contentColor = if (isLightTheme) Color.Black else Color.White
-        val accentColor = Color(0xFF00C4B5)
-        val containerColor = if (isLightTheme) Color(0xFFFAFAFA).copy(0.6f) else Color(0xFF121212).copy(0.4f)
+        val accentColor = confirmButtonColor
+        val finalContainerColor = containerColor ?: if (isLightTheme) Color(0xFFFAFAFA).copy(0.6f) else Color(0xFF121212).copy(0.4f)
         val dimColor = if (isLightTheme) Color(0xFF29293A).copy(0.23f) else Color(0xFF121212).copy(0.56f)
 
         Box(
@@ -114,12 +116,12 @@ fun LiquidConfirmDialog(
                                         blur(if (isLightTheme) 16.dp.toPx() else 8.dp.toPx())
                                         lens(24.dp.toPx(), 48.dp.toPx(), depthEffect = true)
                                     },
-                                    onDrawSurface = { drawRect(containerColor) }
+                                    onDrawSurface = { drawRect(finalContainerColor) }
                                 )
                             } else {
                                 Modifier
                                     .clip(RoundedCornerShape(48.dp))
-                                    .background(containerColor)
+                                    .background(finalContainerColor)
                             }
                         )
                         .fillMaxWidth()
@@ -155,7 +157,7 @@ fun LiquidConfirmDialog(
                         Row(
                             Modifier
                                 .clip(CircleShape)
-                                .background(containerColor.copy(0.2f))
+                                .background(finalContainerColor.copy(0.2f))
                                 .clickable(onClick = onDismiss)
                                 .height(48.dp)
                                 .weight(1f)
