@@ -172,6 +172,8 @@ fun EditorScreen(
                             contentColor = contentColor,
                             onFormatClick = { format ->
                                 when (format) {
+                                    "undo" -> editorController.undo()
+                                    "redo" -> editorController.redo()
                                     "bold" -> editorController.toggleStyle(android.graphics.Typeface.BOLD)
                                     "italic" -> editorController.toggleStyle(android.graphics.Typeface.ITALIC)
                                     // other formats can be added later if needed

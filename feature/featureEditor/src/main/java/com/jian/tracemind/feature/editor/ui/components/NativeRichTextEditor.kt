@@ -134,6 +134,14 @@ class NativeRichTextEditorController {
         onContentChanged?.invoke(getHtml())
     }
 
+    fun undo() {
+        editText?.onTextContextMenuItem(android.R.id.undo)
+    }
+
+    fun redo() {
+        editText?.onTextContextMenuItem(android.R.id.redo)
+    }
+
     fun insertImage(source: String) {
         val view = editText ?: return
         val scope = initialCoroutineScope ?: return

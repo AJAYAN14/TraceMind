@@ -23,6 +23,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.FormatListBulleted
+import androidx.compose.material.icons.automirrored.rounded.Undo
+import androidx.compose.material.icons.automirrored.rounded.Redo
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -41,6 +43,8 @@ private data class ToolbarItem(
 
 private val toolbarItems =
     listOf(
+        ToolbarItem(Icons.AutoMirrored.Rounded.Undo, "Undo", "undo"),
+        ToolbarItem(Icons.AutoMirrored.Rounded.Redo, "Redo", "redo"),
         ToolbarItem(Icons.Rounded.FormatBold, "Bold", "bold"),
         ToolbarItem(Icons.Rounded.FormatItalic, "Italic", "italic"),
         ToolbarItem(Icons.Rounded.StrikethroughS, "Strikethrough", "strikethrough"),
