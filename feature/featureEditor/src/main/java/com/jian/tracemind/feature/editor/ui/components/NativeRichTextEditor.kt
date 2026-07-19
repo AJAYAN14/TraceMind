@@ -34,7 +34,7 @@ class NativeRichTextEditorController {
     private var initialHtml: String? = null
     private var initialCoroutineScope: CoroutineScope? = null
     var onContentChanged: ((String) -> Unit)? = null
-    var onImageClick: ((String) -> Unit)? = null
+    var onImageClick: ((String, android.graphics.Rect) -> Unit)? = null
 
     internal fun init(html: String?, scope: CoroutineScope) {
         initialHtml = html
@@ -65,14 +65,21 @@ class NativeRichTextEditorController {
                 if (d != null) {
                     val bitmap = (d as? BitmapDrawable)?.bitmap
                     if (bitmap != null) {
-                        val screenWidth = context.resources.displayMetrics.widthPixels - 64 // padding
-                        val scale = screenWidth.toFloat() / bitmap.width
-                        val height = (bitmap.height * scale).toInt()
+                        val maxWidth = context.resources.displayMetrics.widthPixels - 64 // padding
+                        val maxHeight = (context.resources.displayMetrics.heightPixels * 0.4).toInt() // 限制最大高度为屏幕高度的40%
                         
-                        val scaledDrawable = BitmapDrawable(context.resources, Bitmap.createScaledBitmap(bitmap, screenWidth, height, true))
-                        scaledDrawable.setBounds(0, 0, screenWidth, height)
+                        var scale = maxWidth.toFloat() / bitmap.width
+                        if (bitmap.height * scale > maxHeight) {
+                            scale = maxHeight.toFloat() / bitmap.height
+                        }
+                        
+                        val finalWidth = (bitmap.width * scale).toInt().coerceAtLeast(1)
+                        val finalHeight = (bitmap.height * scale).toInt().coerceAtLeast(1)
+                        
+                        val scaledDrawable = BitmapDrawable(context.resources, Bitmap.createScaledBitmap(bitmap, finalWidth, finalHeight, true))
+                        scaledDrawable.setBounds(0, 0, finalWidth, finalHeight)
                         drawable.drawable = scaledDrawable
-                        drawable.setBounds(0, 0, screenWidth, height)
+                        drawable.setBounds(0, 0, finalWidth, finalHeight)
                         
                         // Force redraw
                         withContext(Dispatchers.Main) {
@@ -137,12 +144,19 @@ class NativeRichTextEditorController {
             if (d != null) {
                 val bitmap = (d as? BitmapDrawable)?.bitmap
                 if (bitmap != null) {
-                    val screenWidth = context.resources.displayMetrics.widthPixels - 64 // padding
-                    val scale = screenWidth.toFloat() / bitmap.width
-                    val height = (bitmap.height * scale).toInt()
+                    val maxWidth = context.resources.displayMetrics.widthPixels - 64 // padding
+                    val maxHeight = (context.resources.displayMetrics.heightPixels * 0.4).toInt() // 限制最大高度为屏幕高度的40%
                     
-                    val scaledDrawable = BitmapDrawable(context.resources, Bitmap.createScaledBitmap(bitmap, screenWidth, height, true))
-                    scaledDrawable.setBounds(0, 0, screenWidth, height)
+                    var scale = maxWidth.toFloat() / bitmap.width
+                    if (bitmap.height * scale > maxHeight) {
+                        scale = maxHeight.toFloat() / bitmap.height
+                    }
+                    
+                    val finalWidth = (bitmap.width * scale).toInt().coerceAtLeast(1)
+                    val finalHeight = (bitmap.height * scale).toInt().coerceAtLeast(1)
+                    
+                    val scaledDrawable = BitmapDrawable(context.resources, Bitmap.createScaledBitmap(bitmap, finalWidth, finalHeight, true))
+                    scaledDrawable.setBounds(0, 0, finalWidth, finalHeight)
                     
                     val imageSpan = ImageSpan(scaledDrawable, source)
                     
@@ -186,7 +200,7 @@ fun NativeRichTextEditor(
     initialHtml: String,
     coroutineScope: CoroutineScope,
     onContentChanged: (String) -> Unit,
-    onImageClick: ((String) -> Unit)? = null,
+    onImageClick: ((String, android.graphics.Rect) -> Unit)? = null,
     modifier: Modifier = Modifier,
     textColor: Color = Color.Black,
     hint: String = ""
@@ -226,9 +240,19 @@ fun NativeRichTextEditor(
                             val spanStart = text.getSpanStart(span)
                             val spanEnd = text.getSpanEnd(span)
                             if (off in spanStart..spanEnd) {
-                                span.source?.let { src ->
-                                    controller.onImageClick?.invoke(src)
-                                    return true
+                                val startX = l.getPrimaryHorizontal(spanStart)
+                                val endX = startX + span.drawable.bounds.width()
+                                if (x.toFloat() in startX..endX) {
+                                    span.source?.let { src ->
+                                        val rect = android.graphics.Rect(
+                                            (startX + totalPaddingLeft - scrollX).toInt(),
+                                            l.getLineTop(line) + totalPaddingTop - scrollY,
+                                            (endX + totalPaddingLeft - scrollX).toInt(),
+                                            l.getLineBottom(line) + totalPaddingTop - scrollY
+                                        )
+                                        controller.onImageClick?.invoke(src, rect)
+                                        return true
+                                    }
                                 }
                             }
                         }
