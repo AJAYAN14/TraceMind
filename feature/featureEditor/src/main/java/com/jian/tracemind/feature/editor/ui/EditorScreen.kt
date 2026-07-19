@@ -27,7 +27,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.LocalTextSelectionColors
 import androidx.compose.foundation.text.selection.TextSelectionColors
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -50,6 +50,7 @@ import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.jian.tracemind.feature.editor.ui.components.EditorTopBar
 import com.jian.tracemind.feature.editor.ui.components.FormatToolbar
+import com.jian.tracemind.feature.editor.ui.components.icons.IosShareBold
 import com.jian.tracemind.feature.editor.ui.theme.NoteColorPalette
 import com.kyant.backdrop.backdrops.LayerBackdrop
 import com.kyant.backdrop.backdrops.rememberLayerBackdrop
@@ -216,7 +217,7 @@ fun EditorScreen(
                             )
                         ) {
                             Icon(
-                                imageVector = Icons.Default.Palette,
+                                imageVector = Icons.Rounded.Palette,
                                 contentDescription = "Change color",
                                 tint = contentColor,
                                 modifier = Modifier.size(28.dp)
@@ -232,7 +233,7 @@ fun EditorScreen(
                             )
                         ) {
                             Icon(
-                                imageVector = Icons.Default.Image,
+                                imageVector = Icons.Rounded.Image,
                                 contentDescription = "Add image",
                                 tint = contentColor,
                                 modifier = Modifier.size(28.dp)
@@ -246,7 +247,7 @@ fun EditorScreen(
                             )
                         ) {
                             Icon(
-                                imageVector = Icons.Default.TextFields,
+                                imageVector = Icons.Rounded.TextFields,
                                 contentDescription = "Format text",
                                 tint = contentColor,
                                 modifier = Modifier.size(28.dp)
@@ -262,7 +263,7 @@ fun EditorScreen(
                                 )
                             ) {
                                 Icon(
-                                    imageVector = Icons.Default.MoreVert,
+                                    imageVector = Icons.Rounded.MoreVert,
                                     contentDescription = "More options",
                                     tint = contentColor,
                                     modifier = Modifier.size(28.dp)
@@ -280,7 +281,7 @@ fun EditorScreen(
                                     },
                                     leadingIcon = {
                                         Icon(
-                                            imageVector = Icons.Default.Info,
+                                            imageVector = Icons.Rounded.Info,
                                             contentDescription = null
                                         )
                                     }
@@ -300,7 +301,7 @@ fun EditorScreen(
                                     },
                                     leadingIcon = {
                                         Icon(
-                                            imageVector = Icons.Default.Share,
+                                            imageVector = IosShareBold,
                                             contentDescription = null
                                         )
                                     }
@@ -490,7 +491,7 @@ fun EditorScreen(
                                                 viewingImageUrl = info.url
                                                 selectedImageInfo = null
                                             }) {
-                                                Icon(Icons.Default.Fullscreen, contentDescription = "View Image")
+                                                Icon(Icons.Rounded.AspectRatio, contentDescription = "View Image")
                                             }
                                             IconButton(onClick = {
                                                 try {
@@ -511,7 +512,7 @@ fun EditorScreen(
                                                 }
                                                 selectedImageInfo = null
                                             }) {
-                                                Icon(Icons.Default.ContentCopy, contentDescription = "Copy Image")
+                                                Icon(Icons.Rounded.ContentCopy, contentDescription = "Copy Image")
                                             }
                                             IconButton(onClick = {
                                                 try {
@@ -555,7 +556,7 @@ fun EditorScreen(
                                                 }
                                                 selectedImageInfo = null
                                             }) {
-                                                Icon(Icons.Default.Download, contentDescription = "Save Image")
+                                                Icon(Icons.Rounded.Download, contentDescription = "Save Image")
                                             }
                                             IconButton(onClick = {
                                                 try {
@@ -576,13 +577,13 @@ fun EditorScreen(
                                                 }
                                                 selectedImageInfo = null
                                             }) {
-                                                Icon(Icons.Default.Share, contentDescription = "Share Image")
+                                                Icon(IosShareBold, contentDescription = "Share Image")
                                             }
                                             IconButton(onClick = {
                                                 imageToDelete = info.url
                                                 selectedImageInfo = null
                                             }) {
-                                                Icon(Icons.Default.Delete, contentDescription = "Delete Image", tint = MaterialTheme.colorScheme.error)
+                                                Icon(Icons.Rounded.Delete, contentDescription = "Delete Image", tint = MaterialTheme.colorScheme.error)
                                             }
                                         }
                                     }
@@ -657,7 +658,7 @@ fun EditorScreen(
                         ) {
                             if (isSelected) {
                                 Icon(
-                                    imageVector = Icons.Default.Check,
+                                    imageVector = Icons.Rounded.Check,
                                     contentDescription = "Selected",
                                     tint = contentColor,
                                     modifier = Modifier.size(20.dp)
@@ -725,7 +726,7 @@ fun EditorScreen(
                             colors = ButtonDefaults.outlinedButtonColors(contentColor = contentColor),
                             border = androidx.compose.foundation.BorderStroke(1.dp, contentColor.copy(alpha = 0.5f))
                         ) {
-                            Icon(Icons.Default.PhotoLibrary, contentDescription = null, modifier = Modifier.padding(end = 8.dp))
+                            Icon(Icons.Rounded.PhotoLibrary, contentDescription = null, modifier = Modifier.padding(end = 8.dp))
                             Text("从相册选择")
                         }
                         OutlinedButton(
@@ -744,7 +745,7 @@ fun EditorScreen(
                             colors = ButtonDefaults.outlinedButtonColors(contentColor = contentColor),
                             border = androidx.compose.foundation.BorderStroke(1.dp, contentColor.copy(alpha = 0.5f))
                         ) {
-                            Icon(Icons.Default.PhotoCamera, contentDescription = null, modifier = Modifier.padding(end = 8.dp))
+                            Icon(Icons.Rounded.PhotoCamera, contentDescription = null, modifier = Modifier.padding(end = 8.dp))
                             Text("拍照")
                         }
                     }
