@@ -516,6 +516,50 @@ fun EditorScreen(
                                             IconButton(onClick = {
                                                 try {
                                                     val file = java.io.File(info.url)
+                                                    if (file.exists()) {
+                                                        val values = android.content.ContentValues().apply {
+                                                            put(android.provider.MediaStore.Images.Media.DISPLAY_NAME, "TraceMind_${System.currentTimeMillis()}.jpg")
+                                                            put(android.provider.MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
+                                                            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                                                                put(android.provider.MediaStore.Images.Media.RELATIVE_PATH, android.os.Environment.DIRECTORY_PICTURES + "/TraceMind")
+                                                                put(android.provider.MediaStore.Images.Media.IS_PENDING, 1)
+                                                            }
+                                                        }
+                                                        
+                                                        val resolver = context.contentResolver
+                                                        val uri = resolver.insert(android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
+                                                        
+                                                        uri?.let {
+                                                            resolver.openOutputStream(it)?.use { outStream ->
+                                                                java.io.FileInputStream(file).use { inStream ->
+                                                                    inStream.copyTo(outStream)
+                                                                }
+                                                            }
+                                                            
+                                                            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                                                                values.clear()
+                                                                values.put(android.provider.MediaStore.Images.Media.IS_PENDING, 0)
+                                                                resolver.update(it, values, null, null)
+                                                            }
+                                                            
+                                                            scope.launch {
+                                                                snackbarHostState.showSnackbar("已保存到相册")
+                                                            }
+                                                        } ?: run {
+                                                            scope.launch { snackbarHostState.showSnackbar("保存失败") }
+                                                        }
+                                                    }
+                                                } catch (e: Exception) {
+                                                    e.printStackTrace()
+                                                    scope.launch { snackbarHostState.showSnackbar("保存失败") }
+                                                }
+                                                selectedImageInfo = null
+                                            }) {
+                                                Icon(Icons.Default.Download, contentDescription = "Save Image")
+                                            }
+                                            IconButton(onClick = {
+                                                try {
+                                                    val file = java.io.File(info.url)
                                                     val uri = androidx.core.content.FileProvider.getUriForFile(
                                                         context,
                                                         "${context.packageName}.fileprovider",
