@@ -188,7 +188,15 @@ fun EditorScreen(
             snackbarHost = { SnackbarHost(snackbarHostState) },
             bottomBar = {
                 Column(
-                    modifier = Modifier.background(backgroundColor)
+                    modifier = Modifier.background(
+                        brush = androidx.compose.ui.graphics.Brush.verticalGradient(
+                            colors = listOf(
+                                Color.Transparent,
+                                backgroundColor.copy(alpha = 0.8f),
+                                backgroundColor
+                            )
+                        )
+                    )
                 ) {
                     if (showFormatToolbar) {
                         FormatToolbar(
@@ -205,21 +213,21 @@ fun EditorScreen(
                         )
                     }
                     BottomAppBar(
-                        containerColor = backgroundColor,
+                        containerColor = Color.Transparent,
                         contentColor = contentColor,
                         modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding())
                     ) {
                         FilledIconButton(
                             onClick = { showColorPicker = true },
                             colors = IconButtonDefaults.filledIconButtonColors(
-                                containerColor = contentColor.copy(alpha = 0.15f),
-                                contentColor = contentColor
+                                containerColor = Color.White,
+                                contentColor = Color.Black
                             )
                         ) {
                             Icon(
                                 imageVector = Icons.Rounded.Palette,
                                 contentDescription = "Change color",
-                                tint = contentColor,
+                                tint = Color.Black,
                                 modifier = Modifier.size(28.dp)
                             )
                         }
@@ -228,28 +236,28 @@ fun EditorScreen(
                                 showImageSourceDialog = true
                             },
                             colors = IconButtonDefaults.filledIconButtonColors(
-                                containerColor = contentColor.copy(alpha = 0.15f),
-                                contentColor = contentColor
+                                containerColor = Color.White,
+                                contentColor = Color.Black
                             )
                         ) {
                             Icon(
                                 imageVector = Icons.Rounded.Image,
                                 contentDescription = "Add image",
-                                tint = contentColor,
+                                tint = Color.Black,
                                 modifier = Modifier.size(28.dp)
                             )
                         }
                         FilledIconButton(
                             onClick = { showFormatToolbar = !showFormatToolbar },
                             colors = IconButtonDefaults.filledIconButtonColors(
-                                containerColor = if (showFormatToolbar) contentColor.copy(alpha = 0.3f) else contentColor.copy(alpha = 0.15f),
-                                contentColor = contentColor
+                                containerColor = Color.White,
+                                contentColor = Color.Black
                             )
                         ) {
                             Icon(
                                 imageVector = Icons.Rounded.TextFields,
                                 contentDescription = "Format text",
-                                tint = contentColor,
+                                tint = Color.Black,
                                 modifier = Modifier.size(28.dp)
                             )
                         }
@@ -258,14 +266,14 @@ fun EditorScreen(
                             FilledIconButton(
                                 onClick = { showMenu = true },
                                 colors = IconButtonDefaults.filledIconButtonColors(
-                                    containerColor = contentColor.copy(alpha = 0.15f),
-                                    contentColor = contentColor
+                                    containerColor = Color.White,
+                                    contentColor = Color.Black
                                 )
                             ) {
                                 Icon(
                                     imageVector = Icons.Rounded.MoreVert,
                                     contentDescription = "More options",
-                                    tint = contentColor,
+                                    tint = Color.Black,
                                     modifier = Modifier.size(28.dp)
                                 )
                             }
@@ -337,7 +345,6 @@ fun EditorScreen(
                     modifier = Modifier
                         .fillMaxSize()
                         .background(backgroundColor)
-                        .padding(bottom = paddingValues.calculateBottomPadding())
                         .consumeWindowInsets(paddingValues)
                         .imePadding()
                 ) {
@@ -479,7 +486,7 @@ fun EditorScreen(
                                 ) {
                                     Surface(
                                         shape = androidx.compose.foundation.shape.CircleShape,
-                                        color = MaterialTheme.colorScheme.surface,
+                                        color = Color.White,
                                         tonalElevation = 8.dp,
                                         shadowElevation = 8.dp
                                     ) {
