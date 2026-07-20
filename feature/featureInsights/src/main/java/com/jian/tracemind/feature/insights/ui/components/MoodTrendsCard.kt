@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -29,19 +30,21 @@ fun MoodTrendsCard(moodDataList: List<MoodData>, modifier: Modifier = Modifier) 
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .background(androidx.compose.material3.MaterialTheme.colorScheme.surface)
+            .background(MaterialTheme.colorScheme.surface)
             .padding(16.dp)
     ) {
         if (moodDataList.isEmpty()) {
             Text(
                 text = "暂无心情数据",
-                color = Color.Gray,
-                modifier = Modifier.align(Alignment.CenterHorizontally).padding(32.dp)
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.align(Alignment.CenterHorizontally).padding(32.dp),
+                fontSize = 14.sp
             )
             return@Column
         }
 
         val maxVal = moodDataList.maxOfOrNull { it.value } ?: 1
+        val safeMax = if (maxVal == 0) 1 else maxVal
         val chartHeight = 150.dp
         
         Row(
@@ -53,7 +56,7 @@ fun MoodTrendsCard(moodDataList: List<MoodData>, modifier: Modifier = Modifier) 
             verticalAlignment = Alignment.Bottom
         ) {
             moodDataList.forEach { moodItem ->
-                val barHeightFrac = moodItem.value.toFloat() / maxVal
+                val barHeightFrac = moodItem.value.toFloat() / safeMax
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Bottom,
@@ -62,21 +65,21 @@ fun MoodTrendsCard(moodDataList: List<MoodData>, modifier: Modifier = Modifier) 
                     // Bar
                     Box(
                         modifier = Modifier
-                            .width(30.dp)
+                            .width(32.dp)
                             .height(chartHeight * barHeightFrac)
                             .clip(RoundedCornerShape(topStart = 6.dp, topEnd = 6.dp))
                             .background(Color(moodItem.color))
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     // Emoji label
-                    Text(text = moodItem.emoji, fontSize = 15.sp)
+                    Text(text = moodItem.emoji, fontSize = 18.sp)
                 }
             }
         }
 
         // Legend row
         Row(
-            modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+            modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -87,12 +90,16 @@ fun MoodTrendsCard(moodDataList: List<MoodData>, modifier: Modifier = Modifier) 
                 ) {
                     Box(
                         modifier = Modifier
-                            .size(8.dp)
+                            .size(10.dp)
                             .clip(CircleShape)
                             .background(Color(moodItem.color))
                     )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(text = moodItem.mood, color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 10.sp)
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = moodItem.mood, 
+                        color = MaterialTheme.colorScheme.onSurfaceVariant, 
+                        fontSize = 11.sp
+                    )
                 }
             }
         }
